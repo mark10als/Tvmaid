@@ -1,0 +1,325 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<title>番組表</title>
+<meta http-equiv="content-type" content="text/html;" charset="UTF-8">
+
+<link rel="stylesheet" type="text/css" href="base.css" charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="epg.css" charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="genre.css" charset="UTF-8">
+
+<script type="text/javascript" src="jquery.js" charset="UTF-8"></script>
+<script type="text/javascript" src="jquery.cookie.js"></script>
+<script type="text/javascript" src="xdate.js" charset="UTF-8"></script>
+<script type="text/javascript" src="webapi.js" charset="UTF-8"></script>
+<script type="text/javascript" src="js-util.js" charset="UTF-8"></script>
+<script type="text/javascript" src="util.js" charset="UTF-8"></script>
+<script type="text/javascript" src="genre.js" charset="UTF-8"></script>
+
+<script language="javascript">
+var hourHeight = 200;	//1時間の高さpx単位
+var epgStart;			//番組表開始時間
+
+//スクロール時にサービス欄を移動する
+$(window).scroll(function()
+{
+	var top = $(window).scrollTop();
+	$("#service-table").css("top", top + "px");
+});
+
+$(function()
+{
+	writeMenu();
+	
+	serviceTop = $("#service-table").offset().top;
+	
+	writeDateList();
+	writeSGroupList();
+	
+	//表示するサービスを取得
+	var lastSgroup = $.cookie("sgroup");
+	if(lastSgroup == null) { lastSgroup = "terr"; }
+	var sgroup = getQueryString("sgroup", lastSgroup);
+	$.cookie("sgroup", sgroup, { expires: 7 });
+	
+	var sql = getSgroupSql(sgroup);
+	getTable(sql, function(ret)
+	{
+		if(ret.Code != 0)
+		{
+			alert("サービスの取得に失敗しました。\n理由 : " + ret.Message);
+			return;
+		}
+		
+		var services = ret.Data1;
+		
+		if(services.length == 0)
+		{
+			 alert("サービスがありません。チューナの更新をしてください。");
+			 return;
+		}
+		
+		//番組表の日付
+		//date = "now"または日付で、次のような書式(XDateが受け付ける形式)
+		//2014-01-01T04:00:00
+		var lastDate = $.cookie("date");
+		if(lastDate == null) { lastDate = "now"; }
+		
+		var date = getQueryString("date", lastDate);
+		if(date == "now")
+		{
+			epgStart = new XDate(XDate.now());
+		}
+		else
+		{
+			epgStart = new XDate(date);
+		}
+		
+		$.cookie("date", date, { expires: 7 });
+		
+		epgStart.setMinutes(0);
+		epgStart.setSeconds(0);
+		epgStart.setMilliseconds(0);
+		
+		setTitle(sgroup);
+		writeEpg(services, sgroup);
+	});
+});
+
+//番組表作成
+function writeEpg(services, sgroup)
+{
+	//サービス名表示
+	$("#service-table").append("<div class='time-table'></div>");
+	for (var i = 0; i < services.length; i++)
+	{
+		var name = services[i][1];
+		$("#service-table").append("<div class='service'>" + name + "</div>");
+	}
+	
+	//時間表示
+	$("#epg-table").append("<div class='time-table' id='time-table' style='height: " + 24 * hourHeight + "px;'></div>");
+	
+	var hour = epgStart.getHours();
+	for (var i = 0; i < 24; i++)
+	{
+		if(hour > 23) { hour = 0; }
+		$("#time-table").append("<div class='time' style='top: {0}px; height: {1}px;'>{2}</div>".format(i * hourHeight, hourHeight, hour));
+		hour++;
+	}
+	
+	//サービスのボックスを作成
+	for (var i = 0; i < services.length; i++)
+	{
+		var fsid = services[i][0];
+		$("#epg-table").append("<div class='service' id='s" + fsid + "'></div>");
+	}
+	
+	//番組の書き込み
+	var sql = "select id, fsid, start, end, title, desc, genre, eid from event where {0} and end > {1} and start < {2}".format(
+				getSgroupWhereSql(sgroup), 
+				convertDateTime(epgStart), 
+				convertDateTime(epgStart.clone().addHours(24)));
+				
+	getTable(sql, function(ret)
+	{
+		if(ret.Code != 0)
+		{
+			alert("番組の取得に失敗しました。\n理由 : " + ret.Message);
+			return;
+		}
+		
+		var eventArr = new Object();	//イベント要素(html)のサービス別配列。表示速度改善のため、まとめて要素を追加する
+		var regx = /(\[.+?\]|「.+?」)/g;
+		var events = ret.Data1;
+		
+		for (var i = 0; i < events.length; i++)
+		{
+			var id = events[i][0];
+			var fsid = events[i][1];
+			var start = convertXDate(events[i][2]);
+			var end = convertXDate(events[i][3]);
+			var title = events[i][4];
+			var desc = events[i][5];
+			var genre = events[i][6];
+			var eid = events[i][7];
+
+			var searchText = title.replace(regx, "");	//[字]「サブタイトル」等を消す
+			var startPos = start.clone();	//開始時間がはみ出さないようにする
+			if (startPos < epgStart) { startPos = epgStart; }
+			
+			var event = "<div class='event {4}' id='e{0}' style='top:{6}px; height:{7}px'>{1} <a href='event.html?id={0}' target='_blank'>{2}</a><div><a class='reserve' href='javascript:reserve({9}, {8}, {0});'>予約</a> <a class='search' href='http://www.google.co.jp/search?q={5}' target='_blank'>[g]</a></div><div>{3}</div></div>"
+					.format(id,
+							start.toString("HH:mm"),
+							title.escapeHTML(),
+							desc.escapeHTML(),
+							getGenreClass(genre),
+							searchText.escapeHTML(),
+							Math.floor((startPos - epgStart) * hourHeight / 3600000),
+							Math.floor((end - start) * hourHeight / 3600000),
+							fsid,
+							eid
+							);
+			
+			if(eventArr[fsid] == null) { eventArr[fsid] = ""; }
+			eventArr[fsid] += event;
+		}
+		
+		for(var key in eventArr)
+		{
+			$("#s" + key).append(eventArr[key]);
+		}
+		
+		writeReserve();
+	});
+}
+
+//予約情報書き込み
+function writeReserve()
+{
+	//番組のidがほしいので、recordにeventテーブルを結合する
+	var sql = "select record.id, event.id, tuner from record"
+	+ " left join event on record.fsid = event.fsid and record.eid = event.eid"
+	+ " where record.end > {0} and record.start < {1}".format(
+			convertDateTime(epgStart),
+			convertDateTime(epgStart.clone().addHours(24)));
+	
+	getTable(sql, function(ret)
+	{
+		if(ret.Code != 0)
+		{
+			alert("予約の取得に失敗しました。\n理由 : " + ret.Message);
+			return;
+		}
+		
+		var records = ret.Data1;
+		for (var i = 0; i < records.length; i++)
+		{
+			$("#e" + records[i][1]).addClass("reserved");
+			$("#e" + records[i][1]).append("<div class='tuner'>{0}</div>".format(records[i][2]));
+		}
+	});
+}
+
+function getSgroupWhereSql(sgroup)
+{
+	var str =
+	{
+		"terr":	"fsid >> 32 not in (4, 6, 7)",
+		"bs":	"fsid >> 32 = 4",
+		"cs":	"fsid >> 32 in (6, 7)",
+		"user":	"fsid in (select fsid from user_epg where id=1)"
+	}
+	return str[sgroup];
+}
+
+function getSgroupSql(sgroup)
+{
+	if(sgroup == "user")
+	{
+		return "select service.fsid, name from user_epg left join service on"
+				+ " user_epg.fsid = service.fsid"
+				+ " group by user_epg.fsid order by number";
+	}
+	else
+	{
+		var str =
+		{
+			"terr":	"fsid >> 32 not in (4, 6, 7)",
+			"bs":	"fsid >> 32 = 4",
+			"cs":	"fsid >> 32 in (6, 7)"
+		}
+		return "select fsid, name from service where {0} group by fsid order by id".format(str[sgroup]);
+	}
+}
+
+var groupText = 
+{
+	"terr":	"地上",
+	"bs":	"BS",
+	"cs":	"CS",
+	"user":	"ユーザ"
+}
+
+function setTitle(sgroup)
+{
+	document.title = "番組表 ({0}) {1}".format(groupText[sgroup], epgStart.toString("yyyy/M/d HH:00"));
+}
+
+//サービスグループリスト作成
+function writeSGroupList()
+{
+	jQuery.each(groupText, function(i, val)
+	{
+		var date = getQueryString("date", "now");
+		var href = "epg.html?" + setParameter({ "date": date, "sgroup": i });
+		
+		$("#service-group-list").append("<a href='" + href + "'>" + val + "</a><br>");
+	});
+}
+
+//日付リスト作成
+function writeDateList()
+{
+	var group = getQueryString("sgroup", "terr");
+	
+	var href = "epg.html?" + setParameter({ "date": "now", "sgroup": group });
+	$("#date-list").append("<a href='" + href + "'>今の時間</a><br>");
+	
+	var date = new XDate(XDate.now());
+	date.setHours(4);	//朝4時から表示
+	date.setMinutes(0);
+	date.setSeconds(0);
+	date.setMilliseconds(0);
+	
+	var weekText = ["日", "月", "火", "水", "木", "金", "土"];
+	
+	for(var i = 0; i < 8; i++)
+	{
+		href = "epg.html?" + setParameter({ "date": date.toString("yyyy-MM-dd") + "T04:00:00" , "sgroup": group });
+		$("#date-list").append("<a href='{0}'>{1} ({2})</a><br>".format(href, date.getDate(), weekText[date.getDay()]));
+		date.addDays(1);
+	}
+}
+
+//予約
+function reserve(eid, fsid, id)
+{
+	webapi({ api: "AddRecord", fsid: fsid, eid: eid }, function(ret)
+	{
+		if(ret.Code != 0)
+		{
+			alert("予約に失敗しました。\n理由 : " + ret.Message);
+			return;
+		}
+		
+		//ret.Data1に予約IDが返ってくるので、チューナ名を取得
+		var recId = ret.Data1;
+		var sql = "select tuner from record where id = " + recId;
+		getTable(sql, function(ret)
+		{
+			if(ret.Code != 0)
+			{
+				alert("予約の取得に失敗しました。\n理由 : " + ret.Message);
+				return;
+			}
+			$("#e" + id).addClass("reserved");
+			$("#e" + id).append("<div class='tuner'>{0}</div>".format(ret.Data1[0][0]));
+		});
+	});
+}
+</script>
+</head><body>
+<div id="menu"></div>
+<div id="content">
+	<div id="side-menu">
+		<div id="date-list"></div>
+		<div id="service-group-list"></div>
+		<div><a href="user-epg-edit.html" target="_blank">編集</a></div>
+		<div><a href="genre.html" target="_blank">凡例</a></div>
+	</div>
+	<div id="epg">
+		<div id="service-table"></div>
+		<div id="epg-table"></div>
+	</div>
+</div>
+</body></html>

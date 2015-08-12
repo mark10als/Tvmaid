@@ -1,0 +1,104 @@
+#content
+{
+	margin-left: 5em;
+	margin-top: 1em;
+	display: inline-flex;
+}
+
+#edit
+{
+}
+
+#auto-list
+{
+	padding: 0.5em;
+	border-width: 0px 0px 0px 1px;
+	border-style: solid;
+	border-color: lightgray;
+	margin-left: 1em;
+	margin-right: 1em;
+	white-space: nowrap;
+}
+
+form
+{
+	display: inline-block;
+	border-width: 0px 0px 0px 0px;
+	border-style: solid;
+}
+
+.item
+{
+	display: flex;
+	margin: 0.5em;
+}
+
+.caption
+{
+	text-align: right; 
+	width: 6em;
+	margin-right: 1em;
+}
+
+.input
+{
+	font-size: 100%;
+}
+
+.long-text
+{
+	width: 25em;
+}
+
+.time
+{
+	width: 4em;
+}
+
+.button
+{
+	width: 8em;
+	margin-right: 0.5em;
+}
+
+.desc
+{
+	font-size: small;
+}
+
+hr
+{
+	border-width: 1px 0px 0px 0px;
+	border-style: solid;
+	margin: 0.5em 0em;
+}
+
+#service
+{
+	width: 11em;
+}
+
+#genre
+{
+	width: 11em;
+}
+
+#hour
+{
+	width: 6em;
+}
+
+#week
+{
+	width: 6em;
+}
+
+.disable a
+{
+	color: silver;
+}
+
+.button-box
+{
+	margin-top: 1em;
+}

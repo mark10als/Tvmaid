@@ -1,0 +1,135 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2013 for Windows Desktop
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tvmaid", "Tvmaid\Tvmaid.csproj", "{2A201120-36C0-4DC4-8372-13CBE0732C8C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TvmaidPlugin", "TvmaidPlugin\TvmaidPlugin.vcxproj", "{F4818D7D-2EE2-4FD7-9633-6C3AAE5DBB66}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "doc", "doc", "{002EFD0D-AD6B-4EB3-B1F1-D8A27240881E}"
+	ProjectSection(SolutionItems) = preProject
+		doc\install.html = doc\install.html
+		doc\readme.html = doc\readme.html
+		doc\webapi.html = doc\webapi.html
+		doc\データベース定義.txt = doc\データベース定義.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wwwroot", "wwwroot", "{DA6A6598-F13E-461E-854C-3AF328239EBC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "maid", "maid", "{A5A52F88-0B05-494C-88AF-4D5E20A2FAF3}"
+	ProjectSection(SolutionItems) = preProject
+		wwwroot\maid\auto-record-edit.css = wwwroot\maid\auto-record-edit.css
+		wwwroot\maid\auto-record-edit.html = wwwroot\maid\auto-record-edit.html
+		wwwroot\maid\epg.css = wwwroot\maid\epg.css
+		wwwroot\maid\epg.html = wwwroot\maid\epg.html
+		wwwroot\maid\event.css = wwwroot\maid\event.css
+		wwwroot\maid\event.html = wwwroot\maid\event.html
+		wwwroot\maid\genre.css = wwwroot\maid\genre.css
+		wwwroot\maid\genre.html = wwwroot\maid\genre.html
+		wwwroot\maid\genre.js = wwwroot\maid\genre.js
+		wwwroot\maid\jquery.js = wwwroot\maid\jquery.js
+		wwwroot\maid\jquery.textchange.js = wwwroot\maid\jquery.textchange.js
+		wwwroot\maid\js-util.js = wwwroot\maid\js-util.js
+		wwwroot\maid\record-edit.css = wwwroot\maid\record-edit.css
+		wwwroot\maid\record-edit.html = wwwroot\maid\record-edit.html
+		wwwroot\maid\record.css = wwwroot\maid\record.css
+		wwwroot\maid\record.html = wwwroot\maid\record.html
+		wwwroot\maid\search.css = wwwroot\maid\search.css
+		wwwroot\maid\search.html = wwwroot\maid\search.html
+		wwwroot\maid\util.js = wwwroot\maid\util.js
+		wwwroot\maid\webapi.js = wwwroot\maid\webapi.js
+		wwwroot\maid\xdate.js = wwwroot\maid\xdate.js
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maidmon", "Maidmon\Maidmon.csproj", "{9CEA399C-8EA3-4E93-BDC5-331154DD9242}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Setup", "Setup\Setup.csproj", "{7990136B-415A-4F6A-8387-700872F45456}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "original", "original", "{E3CBC9FA-CEA5-4FC8-BA7C-DC4256273A13}"
+	ProjectSection(SolutionItems) = preProject
+		doc\original\404.html = doc\original\404.html
+		doc\original\convert.txt = doc\original\convert.txt
+		doc\original\genre.txt = doc\original\genre.txt
+		doc\original\Maidmon.state.def = doc\original\Maidmon.state.def
+		doc\original\subgenre.txt = doc\original\subgenre.txt
+		doc\original\tuner.def = doc\original\tuner.def
+		doc\original\Tvmaid.db = doc\original\Tvmaid.db
+		doc\original\Tvmaid.def = doc\original\Tvmaid.def
+		doc\original\Tvmaid.ico = doc\original\Tvmaid.ico
+		doc\original\Tvmaid.state.def = doc\original\Tvmaid.state.def
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|Win32 = Debug|Win32
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|Win32 = Release|Win32
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2A201120-36C0-4DC4-8372-13CBE0732C8C}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{2A201120-36C0-4DC4-8372-13CBE0732C8C}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{2A201120-36C0-4DC4-8372-13CBE0732C8C}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{2A201120-36C0-4DC4-8372-13CBE0732C8C}.Debug|Win32.ActiveCfg = Debug|x86
+		{2A201120-36C0-4DC4-8372-13CBE0732C8C}.Debug|Win32.Build.0 = Debug|x86
+		{2A201120-36C0-4DC4-8372-13CBE0732C8C}.Debug|x86.ActiveCfg = Debug|x86
+		{2A201120-36C0-4DC4-8372-13CBE0732C8C}.Debug|x86.Build.0 = Debug|x86
+		{2A201120-36C0-4DC4-8372-13CBE0732C8C}.Release|Any CPU.ActiveCfg = Release|x86
+		{2A201120-36C0-4DC4-8372-13CBE0732C8C}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{2A201120-36C0-4DC4-8372-13CBE0732C8C}.Release|Mixed Platforms.Build.0 = Release|x86
+		{2A201120-36C0-4DC4-8372-13CBE0732C8C}.Release|Win32.ActiveCfg = Release|x86
+		{2A201120-36C0-4DC4-8372-13CBE0732C8C}.Release|Win32.Build.0 = Release|x86
+		{2A201120-36C0-4DC4-8372-13CBE0732C8C}.Release|x86.ActiveCfg = Release|x86
+		{2A201120-36C0-4DC4-8372-13CBE0732C8C}.Release|x86.Build.0 = Release|x86
+		{F4818D7D-2EE2-4FD7-9633-6C3AAE5DBB66}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{F4818D7D-2EE2-4FD7-9633-6C3AAE5DBB66}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{F4818D7D-2EE2-4FD7-9633-6C3AAE5DBB66}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{F4818D7D-2EE2-4FD7-9633-6C3AAE5DBB66}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F4818D7D-2EE2-4FD7-9633-6C3AAE5DBB66}.Debug|Win32.Build.0 = Debug|Win32
+		{F4818D7D-2EE2-4FD7-9633-6C3AAE5DBB66}.Debug|x86.ActiveCfg = Debug|Win32
+		{F4818D7D-2EE2-4FD7-9633-6C3AAE5DBB66}.Debug|x86.Build.0 = Debug|Win32
+		{F4818D7D-2EE2-4FD7-9633-6C3AAE5DBB66}.Release|Any CPU.ActiveCfg = Release|Win32
+		{F4818D7D-2EE2-4FD7-9633-6C3AAE5DBB66}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{F4818D7D-2EE2-4FD7-9633-6C3AAE5DBB66}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{F4818D7D-2EE2-4FD7-9633-6C3AAE5DBB66}.Release|Win32.ActiveCfg = Release|Win32
+		{F4818D7D-2EE2-4FD7-9633-6C3AAE5DBB66}.Release|Win32.Build.0 = Release|Win32
+		{F4818D7D-2EE2-4FD7-9633-6C3AAE5DBB66}.Release|x86.ActiveCfg = Release|Win32
+		{F4818D7D-2EE2-4FD7-9633-6C3AAE5DBB66}.Release|x86.Build.0 = Release|Win32
+		{9CEA399C-8EA3-4E93-BDC5-331154DD9242}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CEA399C-8EA3-4E93-BDC5-331154DD9242}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CEA399C-8EA3-4E93-BDC5-331154DD9242}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{9CEA399C-8EA3-4E93-BDC5-331154DD9242}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{9CEA399C-8EA3-4E93-BDC5-331154DD9242}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{9CEA399C-8EA3-4E93-BDC5-331154DD9242}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9CEA399C-8EA3-4E93-BDC5-331154DD9242}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CEA399C-8EA3-4E93-BDC5-331154DD9242}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CEA399C-8EA3-4E93-BDC5-331154DD9242}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{9CEA399C-8EA3-4E93-BDC5-331154DD9242}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{9CEA399C-8EA3-4E93-BDC5-331154DD9242}.Release|Win32.ActiveCfg = Release|Any CPU
+		{9CEA399C-8EA3-4E93-BDC5-331154DD9242}.Release|x86.ActiveCfg = Release|Any CPU
+		{7990136B-415A-4F6A-8387-700872F45456}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7990136B-415A-4F6A-8387-700872F45456}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7990136B-415A-4F6A-8387-700872F45456}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{7990136B-415A-4F6A-8387-700872F45456}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{7990136B-415A-4F6A-8387-700872F45456}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{7990136B-415A-4F6A-8387-700872F45456}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7990136B-415A-4F6A-8387-700872F45456}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7990136B-415A-4F6A-8387-700872F45456}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7990136B-415A-4F6A-8387-700872F45456}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{7990136B-415A-4F6A-8387-700872F45456}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{7990136B-415A-4F6A-8387-700872F45456}.Release|Win32.ActiveCfg = Release|Any CPU
+		{7990136B-415A-4F6A-8387-700872F45456}.Release|x86.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A5A52F88-0B05-494C-88AF-4D5E20A2FAF3} = {DA6A6598-F13E-461E-854C-3AF328239EBC}
+		{E3CBC9FA-CEA5-4FC8-BA7C-DC4256273A13} = {002EFD0D-AD6B-4EB3-B1F1-D8A27240881E}
+	EndGlobalSection
+EndGlobal

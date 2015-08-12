@@ -1,0 +1,204 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<title>検索</title>
+<meta http-equiv="content-type" content="text/html;" charset="UTF-8">
+
+<link rel="stylesheet" type="text/css" href="base.css" charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="search.css" charset="UTF-8">
+
+<script type="text/javascript" src="jquery.js" charset="UTF-8"></script>
+<script type="text/javascript" src="xdate.js" charset="UTF-8"></script>
+<script type="text/javascript" src="webapi.js" charset="UTF-8"></script>
+<script type="text/javascript" src="util.js" charset="UTF-8"></script>
+<script type="text/javascript" src="js-util.js" charset="UTF-8"></script>
+<script type="text/javascript" src="search.js" charset="UTF-8"></script>
+<script type="text/javascript" src="search-form.js" charset="UTF-8"></script>
+<script type="text/javascript" src="genre.js" charset="UTF-8"></script>
+<script type="text/javascript" src="jquery.cookie.js"></script>
+
+<script language="javascript">
+$(function()
+{
+	var detailOpen = $.cookie("detailOpen");
+	if(detailOpen == null)
+	{
+		detailOpen = 1;
+	}
+	if(detailOpen == 0)
+	{
+		$("#detail").slideToggle(0);
+		$.cookie("detailOpen", 0, { expires: 7 });
+	}
+	
+	writeMenu();
+	setPresetword();
+	
+	var query = getQueryString("option", "");
+	if(query == "")
+	{
+		$("#keyword").focus();
+		$("#chrome-scroll").remove();
+		setOption(null);
+		setService(null);
+		return;
+	}
+	option = JSON.parse(query);
+	
+	$("#keyword").val(option.keyword);
+	setOption(option);
+	setService(option.service);
+	
+	var now = new XDate(XDate.now());
+	var opt = getSearchSql(option);
+	
+	var sql = "select event.id, service.name, event.start, event.end, event.title, desc, event.fsid, event.eid, record.status from"
+			+ " ((event left join service on event.fsid = service.fsid)"
+			+ " left join record on event.fsid = record.fsid and event.eid = record.eid)"
+			+ " where event.end > {0} and {1} group by event.id order by event.start limit 50".format(convertDateTime(now), opt);
+	//alert(sql);
+	getTable(sql, function(ret)
+	{
+		if(ret.Code != 0)
+		{
+			alert("検索に失敗しました。\n理由 : " + ret.Message);
+			return;
+		}
+		
+		var events = ret.Data1;
+		var eventHtml = "";
+		var regx = /(\[.+?\]|「.+?」)/g;
+
+		for (var i = 0; i < events.length; i++)
+		{
+			var id		= events[i][0];
+			var service	= events[i][1];
+			var start	= convertXDate(events[i][2]);
+			var end		= convertXDate(events[i][3]);
+			var title	= events[i][4];
+			var desc	= events[i][5];
+			var fsid	= events[i][6];
+			var eid		= events[i][7];
+			var status	= events[i][8];
+			
+			var searchText = title.replace(regx, "");
+			
+			var event = "<div class='event'><a class='title' href='event.html?id={0}'>{1}</a><div class='event-info'><span class='event-date'>{2} ({7}) {8} ～ {3} - {4}</span><br>{5}<br><a class='reserve' href='javascript:reserve({9}, {10});'>予約</a> <a class='search' href='http://www.google.co.jp/search?q={6}' target='_blank'>[g]</a><span class='reserved'>{11}</span></div></div>"
+					.format(id,
+							title.escapeHTML(),
+							start.toString("M/d"),
+							end.toString("HH:mm"),
+							service.escapeHTML(),
+							desc == "" ? "---" : desc.escapeHTML(),
+							searchText.escapeHTML(),
+							getWeekText(start.getDay()),
+							start.toString("HH:mm"),
+							fsid,
+							eid,
+							status == null ? "" : "&lt;予約済み&gt;"
+							);
+			eventHtml += event;
+		}
+		$("#event-list").append(eventHtml);
+		
+		//chromeのスクロール対策
+		$("#chrome-scroll").remove();
+	});
+	
+	sql = "select count(event.id) from event where end > {0} and {1}".format(convertDateTime(now), opt);
+	getTable(sql, function(ret)
+	{
+		if(ret.Code != 0)
+		{
+			alert("検索に失敗しました。\n理由 : " + ret.Message);
+			return;
+		}
+		var count = ret.Data1[0][0];
+		$("#event-count").append(count + " 件");
+		if(count > 50)
+		{
+			$("#event-count").append(" (50件以上は表示しません)");
+		}
+	});
+});
+
+//予約
+function reserve(fsid, eid)
+{
+	webapi({ api: "AddRecord", fsid: fsid, eid: eid }, function(ret)
+	{
+		if(ret.Code != 0)
+		{
+			alert("予約に失敗しました。\n理由 : " + ret.Message);
+			return;
+		}
+		
+		alert("予約しました。");
+	});
+}
+
+function setPresetword()
+{
+	$.get("keyword.txt", function(ret)
+	{
+		var words = ret.split("\r\n");
+		
+		for (var i = 0; i < words.length; i++)
+		{
+			if(words[i] == "-")
+			{
+				$("#presetword").append('<hr>');
+			}
+			else
+			{
+				var q = {
+					keyword: words[i]
+				};
+				var json = JSON.stringify(q);
+				var href = encodeURIComponent(json);
+				$("#presetword").append('<a href="search.html?option=' + href + '">' + words[i].escapeHTML() + '</a><br>');
+			}
+		}
+	});
+}
+
+function openDetail()
+{
+	var detailOpen = $.cookie("detailOpen");
+	$("#detail").slideToggle(0);
+	$.cookie("detailOpen", detailOpen == 0 ? 1 : 0, { expires: 7 });
+}
+</script>
+</head><body>
+<div id="menu"></div>
+<div id="content">
+	<div id="option">
+		<div id="keyword-box">
+			<input id="keyword" class="input" name="keyword" type="search" placeholder="検索キーワード" onkeydown="if(event.keyCode == 13){javascript:search(true);}">
+			<input id="search" class="button input" value="検索" type="button" onclick="search(true)">
+		</div>
+		<a id="detailLink" href="javascript:void(0)" onclick="openDetail()">詳細条件</a>
+		<div id="detail">
+			<select class="input" id="service" name="service" multiple size="8">
+				<option value="-1">指定しない</option>
+			</select>
+			<select class="input" id="genre" name="genre" multiple size="8">
+				<option value="-1">指定しない</option>
+			</select>
+			<select class="input" id="week" name="week" multiple size="8">
+				<option value="-1">指定しない</option>
+			</select>
+			<select class="input" id="hour" name="hour" multiple size="8">
+				<option value="-1">指定しない</option>
+			</select>
+		</div>
+	</div>
+	<div id="main">
+		<div id="result">
+			<div id="event-count"></div>
+			<div id="event-list"></div>
+			<div id="chrome-scroll">　</div>
+		</div>
+		<div id="presetword"></div>
+	</div>
+</div>
+</body></html>

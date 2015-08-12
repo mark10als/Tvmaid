@@ -1,0 +1,8 @@
+;(チューナ名)=(チューナパス)という形式で指定してください。
+;TVTest検索フォルダ内ならば、フルパスでなくファイル名だけでも良いです。
+;チューナ名には「=」「@」は使えません。
+
+地上1=BonDriver_PT-T.dll
+地上2=BonDriver_PT-T.dll
+衛星1=BonDriver_PT-S.dll
+衛星2=BonDriver_PT-S.dll

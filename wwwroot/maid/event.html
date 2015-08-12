@@ -1,0 +1,165 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<title>番組情報</title>
+<meta http-equiv="content-type" content="text/html;" charset="UTF-8">
+
+<link rel="stylesheet" type="text/css" href="base.css" charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="event.css" charset="UTF-8">
+
+<script type="text/javascript" src="jquery.js" charset="UTF-8"></script>
+<script type="text/javascript" src="xdate.js" charset="UTF-8"></script>
+<script type="text/javascript" src="webapi.js" charset="UTF-8"></script>
+<script type="text/javascript" src="js-util.js" charset="UTF-8"></script>
+<script type="text/javascript" src="util.js" charset="UTF-8"></script>
+<script type="text/javascript" src="genre.js" charset="UTF-8"></script>
+
+<script language="javascript">
+$(function()
+{
+	writeMenu();
+	
+	var sql = "select event.id, service.name, start, end, duration, title, desc, longdesc, genre, subgenre, event.fsid, event.eid, genre_text from event"
+				+ " left join service on event.fsid = service.fsid";
+
+	var id = getQueryString("id", -1);
+	if(id != -1)
+	{
+		sql += " where event.id = " + id;
+	}
+	else
+	{
+		var fsid = getQueryString("fsid", -1);
+		var eid = getQueryString("eid", -1);
+		if(fsid == -1 || eid == -1)
+		{
+			alert("番組が指定されていません。");
+			return;
+		}
+		sql += " where event.fsid = {0} and event.eid = {1} ".format(fsid, eid);
+	}
+	
+	getTable(sql, function(ret)
+	{
+		if(ret.Code != 0)
+		{
+			alert("番組の取得に失敗しました。\n理由 : " + ret.Message);
+			return;
+		}
+		
+		var event = ret.Data1[0];
+		
+		var id			= event[0];
+		var service		= event[1];
+		var start		= convertXDate(event[2]);
+		var end			= convertXDate(event[3]);
+		var duration	= event[4];
+		var title		= event[5];
+		var desc		= event[6];
+		var longdesc	= event[7];
+		var genre		= event[8];
+		var subgenre	= event[9];
+		var fsid		= event[10];
+		var eid			= event[11];
+		var genreText	= event[12];
+		
+		$("#title").append(title.escapeHTML());
+		$("#service").append(service);
+		$("#time").append("{0} ({1}) {2} ～ {3} ({4} 分)".format(
+							start.toString("M/d"),
+							getWeekText(start.getDay()),
+							start.toString("HH:mm"),
+							end.toString("HH:mm"),
+							duration / 60));
+		$("#desc").append(desc.escapeHTML());
+		$("#longdesc").append(longdesc.escapeHTML());
+		$("#genre").append(genreText);
+		
+		$("#reserve").attr("href", "javascript:reserve({0}, {1});".format(fsid, eid));
+		
+		var searchText = "http://www.google.co.jp/search?q={0}".format(title.replace(/(\[.+?\]|「.+?」)/g, ""));
+		$("#search").attr("href", searchText.escapeHTML());
+		
+		writeReserve(fsid, eid);
+	});
+});
+
+//予約
+function reserve(fsid, eid)
+{
+	webapi({ api: "AddRecord", fsid: fsid, eid: eid }, function(ret)
+	{
+		if(ret.Code != 0)
+		{
+			alert("予約に失敗しました。\n理由 : " + ret.Message);
+			return;
+		}
+		alert("予約しました。");
+		location.reload(true); 
+	});
+}
+/*
+//予約削除
+function removeReserve(id)
+{
+	webapi({ api: "RemoveRecord", id: id }, function(ret)
+	{
+		if(ret.Code != 0)
+		{
+			alert("予約削除に失敗しました。\n理由 : " + ret.Message);
+			return;
+		}
+		location.reload(true); 
+	});
+}
+*/
+//予約情報書き込み
+function writeReserve(fsid, eid)
+{
+	var sql = "select id, tuner from record where fsid = {0} and eid = {1}".format(fsid, eid);
+	
+	getTable(sql, function(ret)
+	{
+		if(ret.Code != 0)
+		{
+			alert("予約の取得に失敗しました。\n理由 : " + ret.Message);
+			return;
+		}
+		
+		var records = ret.Data1;
+		
+		if(records.length == 0)
+		{
+			$("#tuner").append("予約していません");
+		}
+		else
+		{
+			for (var i = 0; i < records.length; i++)
+			{
+				$("#tuner").append("<div>{0}</div>".format(records[i][1]));
+			}
+		}
+	});
+}
+</script>
+
+</head><body>
+<div id="menu"></div>
+<div id="content">
+	<div id="title"></div>
+	<div id="service"></div>
+	<div id="time"></div>
+	<div><a id="reserve" href="">予約</a> <a id='search' href="" target='_blank'>[g]</a></div>
+	<hr>
+	<div>[番組内容]</div>
+	<div id="desc"></div>
+	<hr>
+	<div>[番組詳細]</div>
+	<div id="longdesc"></div>
+	<hr>
+	<div>[ジャンル]</div>
+	<div id="genre"></div>
+	<hr>
+	<div>[予約]</div>
+	<div id = "tuner"></div>
+</div>
+</body></html>

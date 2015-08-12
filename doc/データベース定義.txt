@@ -1,0 +1,123 @@
+
+--データベース定義
+
+--英字の大文字小文字の区別の基準
+--区別あり: チューナ名
+--区別なし: ファイル名等, 番組タイトル,説明等
+
+--チューナ
+--name、driver/driver_indexでユニーク
+create table tuner
+(
+	id				integer		not null primary key,		--順番として使用
+	name			text		not null,					--チューナ名
+	driver_path		text		not null collate nocase,	--BONドライバのパス
+	driver			text		not null collate nocase,	--BONドライバファイル名
+	driver_index	integer		not null					--ドライバ毎インデックス
+);
+
+create unique index tuner_name on tuner(name);
+create unique index tuner_driver_id on tuner(driver, driver_index);
+
+
+--サービス
+--ドライバ毎にサービスを登録する(サービスはドライバ毎に重複することがある)
+create table service
+(
+	id			integer		not null primary key,		--クエリで使用する。チャンネル情報更新すると変わるため、データに使用しないこと
+	driver		text		not null collate nocase,	--BONドライバファイル名
+	fsid		integer		not null,					--フルサービスID。"nid << 32 + tsid << 16 + sid" の値
+	name		text		not null					--サービス名
+);
+
+create unique index service_unique on service(driver, fsid);
+
+
+--番組
+create table event
+(
+	id			integer		not null unique primary key,	--fsid + eidの代わりとして使用可(番組表更新後も、同じfsid + eidなら同じIDを割り当てるため)
+	fsid		integer		not null,					--フルサービスID
+	eid			integer		not null,					--イベントID
+	
+	start		integer		not null,					--開始日時。DateTime.Ticksの値
+	end			integer		not null,					--終了日時。DateTime.Ticksの値
+	duration	integer		not null,					--録画時間。秒単位
+	
+	title		text		not null collate nocase,	--タイトル
+	desc		text		not null collate nocase,	--番組内容
+	longdesc	text		not null collate nocase,	--番組詳細
+	genre		integer		not null,					--ジャンル。0x0～0x10。0x10:なし
+	subgenre	integer		not null,					--サブジャンル。0x0～0x10。0x10:なし
+
+	week		integer		not null,					--曜日。 0:日 1:月 2:火 3:水～。検索で使用
+	genre_text	text		not null collate nocase		--ジャンル(テキスト)。「ジャンル/サブジャンル」。検索で使用
+);
+
+create unique index event_unique on event(fsid, eid);
+create index event_fsid on event(fsid);
+create index event_start on event(start);
+create index event_end on event(end);
+
+
+--録画予約
+create table record
+(
+	id			integer		not null primary key,
+	fsid		integer		not null,					--フルサービスID
+	eid			integer		not null,					-- -1:イベントIDなし(番組情報なし)
+
+	start		integer		not null,					--開始日時。DateTime.Ticksの値
+	end			integer		not null,					--終了日時。DateTime.Ticksの値
+	duration	integer		not null,					--録画時間。秒単位
+	
+	auto		integer		not null,					--自動録画予約ID。-1:手動 
+	status		integer		not null,					--状態をピットで表す。1:有効/無効 2:追従する/しない 4:未使用 8:未使用 16:未使用 32:重複あり/なし 64:待機中/録画中 128:録画終了
+	title		text		not null collate nocase,	--タイトル
+	tuner		text		not null					--チューナ名。空文字列:チューナ自動指定
+);
+
+
+--自動録画予約
+create table auto_record
+(
+	id			integer		not null primary key,
+	sql			text		not null,					--下記の条件を検索するSQL文字列
+	option		text		not null,					--検索条件(json形式)
+	status		integer		not null,					--0:無効 1:有効
+	title		text		not null collate nocase,	--ユーザが付ける名前。検索には関係ない
+	number		integer		not null					--順番(未使用)
+);
+
+
+--録画結果
+create table result
+(
+	id				integer		not null primary key,
+	title			text		not null collate nocase,	--タイトル
+	service			text		not null collate nocase,	--サービス名
+	file			text		not null collate nocase,	--ファイル名
+
+	start			integer		not null,					--開始日時。DateTime.Ticksの値
+	end				integer		not null,					--終了日時。DateTime.Ticksの値
+	sch_start		integer		not null,					--開始予定日時。DateTime.Ticksの値
+	sch_end			integer		not null,					--終了予定日時。DateTime.Ticksの値
+
+	code			integer		not null,					--エラーコード
+	error_count		integer		not null,					--エラーパケット数
+	drop_count		integer		not null,					--ドロップパケット数
+	scramble_count	integer		not null,					--復号化エラーパケット数
+	message			text		not null					--エラーメッセージ
+);
+
+create index result_end on event(end);
+
+
+--ユーザ番組表
+create table user_epg
+(
+	id			integer		not null,		--番号
+	fsid		integer		not null,		--フルサービスID
+	number		integer		not null,		--順番
+	primary key(id, number)
+);

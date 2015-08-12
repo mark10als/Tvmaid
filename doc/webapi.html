@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html; charset=Shift_JIS" http-equiv="content-type">
+    <title>Tvmaid Web API</title>
+    <link rel="stylesheet" type="text/css" href="help.css" charset="UTF-8">
+  </head>
+  <body>
+    <h1> Tvmaid Web API</h1>
+    Tvmaidはブラウザで操作します。<br>
+    その表示用のhtmlは、Tvmaid本体で書きかえることはありません。<br>
+    通常のhtmlを作成し、クライアント側のjavascriptでTvmaidからデータの取得を行い、htmlを書き換えて表示します。<br>
+    <h2>配置</h2>
+    Tvmaidフォルダのwwwroot以下にhtmlを置いてください。<br>
+    /maidフォルダは標準のUIです。これをコピー、リネームし書き換えると良いです。<br>
+    <h2>呼び出し方</h2>
+    Web APIは、ajaxを使って、getで呼び出します。<br>
+    <br>
+    http://（アドレス）:20000/webapi?api=（API名）&amp;(パラメータ名1)=(パラメータ値1)&amp;(パラメータ名2)=(パラメータ値2)&amp;・・・<br>
+    <br>
+    具体例：<br>
+    GetTable APIを使って、eventテーブルからid=1のタイトルを取得します。<br>
+    <a href="http://localhost:20000/webapi?api=GetTable&amp;sql=select%20title%20from%20event%20where%20id=1">http://localhost:20000/webapi?api=GetTable&amp;sql=select title from event where id=1</a><br>
+    <br>
+    Tvmaidを起動した状態で、上記のURLをそのままブラウザでアクセスしても、データが取得できるのがわかります。<br>
+    id=1のデータが無くてもエラーにはなりません。SQLの結果がそのまま取得されるからです。<br>
+    <br>
+    取得したデータは、次のJSON形式で戻ってきます。<br>
+    <br>
+    Code&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; エラーコード。0: 正常終了 1:エラー<br>
+    Message&nbsp;&nbsp; エラー内容。<br>
+    Data1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ここに取得したデータが入る。<br>
+    　　<br>
+    実際には、jquery.jsと、webapi.jsを読み込んで、webapi.jsの関数を使うと便利です。<br>
+    <br>
+    予約削除の例：<br>
+    var id = 削除したい予約ID<br>
+    webapi({ "api":"RemoveRecord", "id":id}, function(ret)<br>
+    {<br>
+    &nbsp; if (ret.Code != 0)<br>
+    &nbsp; {<br>
+    &nbsp; &nbsp;&nbsp; alert("削除に失敗しました。\n理由 : " + ret.Message);<br>
+    &nbsp; &nbsp;&nbsp; return;<br>
+    &nbsp; }<br>
+    &nbsp; else<br>
+    &nbsp; {<br>
+    &nbsp;&nbsp;&nbsp; //削除成功&nbsp; <br>
+    &nbsp; }<br>
+    });<br>
+    <h2>リファレンス</h2>
+    <h3>GetTable</h3>
+    データベーステーブルのデータを取得します。<br>
+    SQL文を直接使用し、そのままデータを取ることができます。<br>
+    テーブルの内容は、データベース定義を参照してください。<br>
+    event.htmlは、使用例としてわかりやすいと思います。<br>
+    <br>
+    引数：sql=SQLのselect文。<br>
+    戻り値：Data1=テーブルのデータ。<br>
+    <br>
+    例：<br>
+    呼び出し<br>
+    http://localhost:20000/webapi?api=GetTable&amp;sql=select title, start from event where id=1<br>
+    <br>
+    戻り値<br>
+    Code: 0<br>
+    Message: ""<br>
+    Data1: [[9時のニュース,635451100000000000]]<br>
+    <br>
+    startフィールド（開始時間）は、.netのDateTime値なので、このままでは使えません。<br>
+    これをjavascriptで扱いやすいように変換します。<br>
+    webapi.jsに、.netのDateTimeをXDateに変換する関数があります。<br>
+    XDateは、javascriptのDateを拡張したクラスです。<br>
+    <a href="http://arshaw.com/xdate/">http://arshaw.com/xdate/</a><br>
+    <br>
+    <span style="text-decoration: underline;"><span style="font-weight: bold;">注意！</span><br>
+    </span>SQL文で文字列を指定する場合は、「'」をエスケープしてください。<br>
+    LIKE文を使用する場合は、上記に加えて「%」「_」をエスケープします。<br>
+    <br>
+    webapi.jsにある、sqlEncode、sqlLikeEncode関数が使用できます。<br>
+    LIKEのエスケープ文字は「^」で、LIKE文に「escape '^'」と指定する必要があります。<br>
+    例： where title like 'xxx' escape '^' （xxxはsqlLikeEncodeで変換された検索文字列）<br>
+    <a href="http://arshaw.com/xdate/"> </a>
+    <h3>AddRecord</h3>
+    予約を新規追加、変更します。<br>
+    <br>
+    引数はすべて設定する必要はありません。<br>
+    最低、fsidとeidだけでも予約できます。この場合、fsidとeidが指す番組が新規予約されます。<br>
+    例として、event.htmlのreserve関数を参照してください。<br>
+    すべての引数を設定する例は、record-edit.htmlにあります。<br>
+    <br>
+    引数：<br>
+    id=予約ID。新規の場合は-1。それ以外の場合は、そのIDの予約を変更します。<br>
+    title=タイトル<br>
+    start=開始時間。.netのDateTime値。convertDateTimeを使って、XDateから.netのDateTimeに変換してください。<br>
+    duration=録画時間。秒単位。<br>
+    eid=番組ID。<br>
+    status=ステータス。1のビット有効。2のビット追従指定。詳しくはデータベース定義を参照。<br>
+    fsid=フルサービスID。データベース定義を参照。<br>
+    tuner=チューナ名。<br>
+    <br>
+    戻り値：Data1=予約ID。<br>
+    <h3>RemoveRecord</h3>
+    予約を削除します。<br>
+    <br>
+    引数：id=予約ID。<br>
+    戻り値：なし。<br>
+    <h3>AddAutoRecord</h3>
+    自動予約を追加します。<br>
+    <br>
+    sqlパラメータにセットするSQL文は直接作らず、 search.jsのgetSearchSql関数を使ってください。<br>
+    不正なSQL文が登録されても検査できません。<br>
+    このAPIの使用例は、auto-record-edit.htmlを参照してください。<br>
+    <br>
+    引数：<br>
+    id=自動予約ID。新規の場合は-1。それ以外の場合は、そのIDの自動予約を変更します。<br>
+    sql=検索SQL文。Tvmaid本体で、予約を自動で追加するときに使います。<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; where文の内容だけです。<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; search.jsのgetSearchSql関数を使って作ります。<br>
+    option=検索項目。Tvmaid本体では使用されません。スクリプト側で使うデータです。<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; JSON形式のテキストデータで、以下のようになっています。<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; keyword:キーワード<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; service:[fsid配列]<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; week:[曜日の数値配列]<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; hour:[開始時間の数値配列]<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; genre[ジャンルの数値配列]<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }<br>
+    <br>
+    status=ステータス。1のビット有効。詳しくはデータベース定義を参照。<br>
+    title=自動予約タイトル。<br>
+    <br>
+    戻り値：Data1=自動予約ID。<br>
+    <h3>RemoveAutoRecord</h3>
+    自動予約を削除します。<br>
+    <br>
+    引数：id=自動予約ID。<br>
+    戻り値：なし。<br>
+    <br>
+  </body>
+</html>

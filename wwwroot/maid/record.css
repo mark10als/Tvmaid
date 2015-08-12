@@ -1,0 +1,71 @@
+#content
+{
+	margin-left: 2em;
+}
+
+#record-list
+{
+	display: inline-block;
+	margin-bottom: 2em;
+}
+
+.record
+{
+	display: inline-flex;
+ 	align-items: center;
+	border-bottom: 1px solid lightgray;
+	margin-right: 1em;
+}
+
+.record div
+{
+	margin-right: 1em;
+}
+
+.record a
+{
+	text-decoration: none;
+}
+
+.time
+{
+}
+
+.service
+{
+	width: 12em;
+}
+
+.title
+{
+	width: 20em;
+}
+
+.mode
+{
+	width: 4em;
+}
+
+.status
+{
+	width: 4em;
+}
+
+.remove a
+{
+}
+
+.disable
+{
+	background-color: darkgray;
+}
+
+.event-link
+{
+	width: 16px;
+}
+
+.duplication
+{
+	background-color: indianred;
+}

@@ -1,0 +1,31 @@
+body
+{
+	margin: 0em;
+	line-height: 1.50em;
+	background-color: white;
+}
+
+body a
+{
+	color: black;
+}
+
+#menu
+{
+	margin-bottom: 1em;
+	background-color: black;
+	padding: 0.5em;
+}
+
+#menu a
+{
+	margin-right: 1em;
+	color: white;
+	text-decoration: none;
+}
+
+.button
+{
+	background-color: black;
+	color: white;
+}

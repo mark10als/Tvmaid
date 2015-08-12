@@ -1,0 +1,67 @@
+#content
+{
+	margin-left: 2em;
+}
+
+#result-list
+{
+	display: inline-block;
+	margin-bottom: 2em;
+}
+
+.result
+{
+	display: inline-flex;
+ 	align-items: center;
+	border-bottom: 1px solid lightgray;
+	margin-right: 1em;
+}
+
+.result div
+{
+	margin-right: 1em;
+}
+
+.result a
+{
+	text-decoration: none;
+}
+
+.time
+{
+	width: 12em;
+}
+
+.title
+{
+	width: 17em;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.error
+{
+	width: 12em;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.file
+{
+	width: 12em;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.abnormal
+{
+	background-color: whitesmoke;
+}
+
+.desc
+{
+	color: gray;
+}

@@ -1,0 +1,121 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<title>録画予約一覧</title>
+<meta http-equiv="content-type" content="text/html;" charset="UTF-8">
+
+<link rel="stylesheet" type="text/css" href="base.css" charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="record.css" charset="UTF-8">
+
+<script type="text/javascript" src="jquery.js" charset="UTF-8"></script>
+<script type="text/javascript" src="xdate.js" charset="UTF-8"></script>
+<script type="text/javascript" src="webapi.js" charset="UTF-8"></script>
+<script type="text/javascript" src="js-util.js" charset="UTF-8"></script>
+<script type="text/javascript" src="util.js" charset="UTF-8"></script>
+
+<script language="javascript">
+$(function()
+{
+	writeMenu();
+	var now = new XDate(XDate.now());
+	
+	//予約を取得。サービス名が必要なのでserviceを結合する
+	//group by record.idを入れないとドライバの数だけ重複する
+	var sql = "select record.id, service.name, start, end, title, auto, status, tuner, eid, record.fsid from record"
+				+ " left join service on record.fsid = service.fsid"
+				+ " where end > {0} group by record.id order by start".format(convertDateTime(now));
+	
+	getTable(sql, function(ret)
+	{
+		if(ret.Code != 0)
+		{
+			alert("予約取得に失敗しました。\n理由 : " + ret.Message);
+			return;
+		}
+		
+		var records = ret.Data1;
+		var list = "";
+		
+		var mode	= ["時間", "追従"];
+		var enable	= ["無効", "有効"];
+		var autoRec	= ["手動", "自動"];
+		
+		for (var i = 0; i < records.length; i++)
+		{
+			var id		= records[i][0];
+			var service	= records[i][1];
+			var start	= convertXDate(records[i][2]);
+			var end		= convertXDate(records[i][3]);
+			var title	= records[i][4];
+			var auto	= records[i][5];
+			var status	= records[i][6];
+			var tuner	= records[i][7];
+			var eid		= records[i][8];
+			var fsid	= records[i][9];
+			
+			var time = "{0}({1})<br>{2}～{3}".format(start.toString("M/d"),
+												getWeekText(start.getDay()),
+												start.toString("HH:mm"),
+												end.toString("HH:mm"));
+			
+			var eventLink = "<div class='event-link'><a href='event.html?fsid={0}&eid={1}'><img src='image/doc.png'></a></div>".format(fsid, eid);
+			if(eid == -1)
+			{
+				eventLink = "<div class='event-link'></div>";
+			}
+			
+			var stateText = "OK";
+			if((status & 32) > 0) { stateText = "重複"; }
+			if((status & 64) > 0) { stateText = "録画中"; }
+			if((status & 128) > 0) { stateText = "録画終了"; }
+
+			var rec = "<div class='record {9} {11}' id='r{0}'><div class='title'><a href='record-edit.html?id={0}'>{3}</a></div>{10}<div class='time'>{1}</div><div class='service'>{2}<br>{5}</div><div class='mode'>{4}<br>{8}</div><div class='status'>{6}<br>{7}</div><div class='remove'><a href='javascript:remove({0});'>x</a></div></div>"
+					.format(id,
+							time,
+							service.escapeHTML(),
+							title.escapeHTML(),
+							mode[(status & 2) / 2],
+							tuner,
+							enable[status & 1],
+							stateText,
+							autoRec[auto == -1 ? 0 : 1],
+							(status & 1) == 0 ? "disable" : "",
+							eventLink,
+							(status & 32) == 0 ? "" : "duplication"
+							);
+			list += rec;
+		}
+		
+		if(records.length == 0)
+		{
+			list = "予約はありません";
+		}
+		
+		$("#record-list").append(list);
+	});
+});
+
+function remove(id)
+{
+	if(confirm("この予約を削除しますか？\n（自動予約された録画の場合は削除されず無効になります）"))
+	{
+		webapi({ "api":"RemoveRecord", "id":id }, function(ret)
+		{
+			if (ret.Code != 0)
+			{
+				alert("予約削除に失敗しました。\n理由 : " + ret.Message);
+				return;
+			}
+			
+			location.reload(true); 
+		});
+	}
+	//return false;
+}
+</script>
+
+</head><body>
+<div id="menu"></div>
+<div id="content">
+	<div id="record-list"></div>
+</div>
+</body></html>

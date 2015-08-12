@@ -1,0 +1,213 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<title>録画予約編集</title>
+<meta http-equiv="content-type" content="text/html;" charset="UTF-8">
+
+<link rel="stylesheet" type="text/css" href="base.css" charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="record-edit.css" charset="UTF-8">
+
+<script type="text/javascript" src="jquery.js" charset="UTF-8"></script>
+<script type="text/javascript" src="xdate.js" charset="UTF-8"></script>
+<script type="text/javascript" src="webapi.js" charset="UTF-8"></script>
+<script type="text/javascript" src="util.js" charset="UTF-8"></script>
+<script type="text/javascript" src="js-util.js" charset="UTF-8"></script>
+
+<script language="javascript">
+var recordId = -1;
+var recordEid = -1;
+
+$(function()
+{
+	writeMenu();
+	
+	var id = getQueryString("id", 0);
+	
+	if(id == -1)
+	{
+		var now = new XDate(XDate.now());
+		$("#start").val(now.toString("yyyy/MM/dd HH:mm"));
+		$("#end").val(now.toString("yyyy/MM/dd HH:mm"));
+		
+		$("#mode").val(0);
+		$("#mode").attr("disabled", true);
+		$("#enable").val(1);
+		$("#file").val("{title}-{start-time}.ts");
+		setService(null);
+		setTuner(null);
+		return;
+	}
+	
+	var sql = "select id, fsid, eid, start, end, auto, status, title, tuner from record where id = " + id;
+	getTable(sql, function(ret)
+	{
+		if(ret.Code != 0)
+		{
+			alert("エラーが発生しました。\n[詳細] " + ret.Message);
+			return;
+		}
+		
+		if(ret.Data1.length == 0)
+		{
+			alert("指定された予約がありません。");
+			return;
+		}
+		
+		var rec = ret.Data1[0];
+		
+		var id		= rec[0];
+		var fsid	= rec[1];
+		var eid		= rec[2];
+		var start	= convertXDate(rec[3]);
+		var end		= convertXDate(rec[4]);
+		
+		var auto	= rec[5];
+		var status	= rec[6];
+		var title	= rec[7];
+		var tuner	= rec[8];
+		var file	= rec[9];
+		
+		recordId = id;
+		recordEid = eid;
+		
+		$("#title").val(title);
+		$("#start").val(start.toString("yyyy/MM/dd HH:mm"));
+		$("#end").val(end.toString("yyyy/MM/dd HH:mm"));
+		$("#mode").val((status & 2) / 2);
+		$("#enable").val(status & 1);
+		$("#file").val(file);
+		
+		setService(fsid);
+		setTuner(tuner);
+	});
+});
+
+function setTuner(tuner)
+{
+	var sql = "select name from tuner order by id";
+	getTable(sql, function(ret)
+	{
+		if (ret.Code != 0)
+		{
+			alert("チューナが取得できませんでした。\n[詳細] " + ret.Message);
+			return;
+		}
+
+		var tuners = ret.Data1;
+
+		for (var i = 0; i < tuners.length; i++)
+		{
+			$('#tuner').append($('<option />').val(tuners[i][0]).html(tuners[i][0]));
+		}
+		
+		if(tuner != null) { $("#tuner").val(tuner); }
+	});
+}
+
+function setService(fsid)
+{
+	var sql = "select fsid, name from service group by fsid order by id";
+	getTable(sql, function(ret)
+	{
+		if(ret.Code != 0)
+		{
+			alert("サービスが取得できませんでした。\n[詳細] " + ret.Message);
+			return;
+		}
+		
+		var services = ret.Data1;
+		
+		for(var i = 0; i < services.length; i++)
+		{
+			$('#service').append($('<option />').val(services[i][0]).html(services[i][1]));
+		}
+		
+		if(fsid != null) { $("#service").val(fsid); }
+	});
+}
+
+//予約
+function reserve1()
+{
+	var start = Date.parse($("#start").val());
+	start = new XDate(start);
+
+	var end = Date.parse($("#end").val());
+	end = new XDate(end);
+	
+	var status = $("#enable").val() | ($("#mode").val() * 2)
+	
+	webapi({
+		"api":		"AddRecord",
+		"id":		recordId,
+		"title":	$("#title").val(),
+		"start":	convertDateTime(start),
+		"duration":	(end - start) / 1000,
+		"eid":		$("#mode").val() == -1 ? -1 : recordEid,
+		"status":	status,
+		"fsid":		$("#service").val(),
+		"tuner":	$("#tuner").val()
+	},
+	function(ret)
+	{
+		if (ret.Code != 0)
+		{
+			alert("予約に失敗しました。\n理由 : " + ret.Message);
+			return;
+		}
+		alert("予約しました。");
+		location.href = "record-edit.html?id=" + ret.Data1;
+	});
+
+	return false;
+}
+</script>
+
+</head><body>
+<div id="menu"></div>
+<form onsubmit="return reserve1();" id="form">
+<div id="content">
+		<div class="item">
+			<div class="caption">タイトル</div>
+			<input class="input long-text" required="required" id="title" type="text">
+		</div>
+		<div class="item">
+			<div class="caption">サービス</div>
+		    <select class="input" id="service"></select>
+		</div>
+		<div class="item">
+			<div class="caption">開始日時</div>
+		    <input class="input date" required="required" id="start" type="text" pattern="\d{4}/\d{1,2}/\d{1,2} [0-2][0-9]:[0-5][0-9]">
+		</div>
+		<div class="item">
+			<div class="caption">終了日時</div>
+		    <input class="input date" required="required" id="end" type="text" pattern="\d{4}/\d{1,2}/\d{1,2} [0-2][0-9]:[0-5][0-9]">
+		</div>
+		<hr>
+		<div class="item">
+			<div class="caption">予約</div>
+		    <select class="input" id="enable">
+				<option value="1">有効</option>
+				<option value="0">無効</option>
+		    </select>
+		</div>
+		<div class="item">
+			<div class="caption">モード</div>
+			<select class="input" id="mode">
+				<option value="1">番組追従</option>
+				<option value="0">時間指定</option>
+			</select>
+		</div>
+		<div class="item">
+			<div class="caption">チューナ</div>
+		    <select class="input" id="tuner">
+				<option value="">自動選択</option>
+		    </select>
+		</div>
+		<hr>
+		<div class="item">
+			<div class="caption"></div>
+			<input id="reserve" class="input button" type="submit" value="予約">
+		</div>
+</div>
+</form>
+</body></html>

@@ -1,0 +1,96 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<title>録画結果一覧</title>
+<meta http-equiv="content-type" content="text/html;" charset="UTF-8">
+
+<link rel="stylesheet" type="text/css" href="base.css" charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="result.css" charset="UTF-8">
+
+<script type="text/javascript" src="jquery.js" charset="UTF-8"></script>
+<script type="text/javascript" src="xdate.js" charset="UTF-8"></script>
+<script type="text/javascript" src="webapi.js" charset="UTF-8"></script>
+<script type="text/javascript" src="js-util.js" charset="UTF-8"></script>
+<script type="text/javascript" src="util.js" charset="UTF-8"></script>
+
+<script language="javascript">
+$(function()
+{
+	writeMenu();
+	var now = new XDate(XDate.now());
+	
+	//予約を取得。サービス名が必要なのでserviceを結合する
+	//group by record.idを入れないとドライバの数だけ重複する
+	var sql = "select id, title, service, file, start, end, sch_start, sch_end, code, error_count, drop_count, scramble_count, message from result order by end desc limit 50";
+	
+	getTable(sql, function(ret)
+	{
+		if(ret.Code != 0)
+		{
+			alert("結果取得に失敗しました。\n理由 : " + ret.Message);
+			return;
+		}
+		
+		var results = ret.Data1;
+		var list = "";
+		
+		var mode	= ["時間", "追従"];
+		
+		for (var i = 0; i < results.length; i++)
+		{
+			var id		= results[i][0];
+			var title	= results[i][1];
+			var service	= results[i][2];
+			var file	= results[i][3];
+			
+			var start	= convertXDate(results[i][4]);
+			var end		= convertXDate(results[i][5]);
+			var schStart= convertXDate(results[i][6]);
+			var schEnd	= convertXDate(results[i][7]);
+			
+			var code	= results[i][8];
+			var error	= results[i][9];
+			var drop	= results[i][10];
+			var scramble= results[i][11];
+			var message	= results[i][12];
+			
+			var time = "{0}({1}) {2}～{3}".format(start.toString("M/d"),
+												getWeekText(start.getDay()),
+												start.toString("HH:mm"),
+												end.toString("HH:mm"));
+												
+			var schTime = "{0}～{1}".format(schStart.toString("HH:mm"),
+											schEnd.toString("HH:mm"));
+			
+			var res = "<div class='result {9}' id='r{0}'><div class='title' title='{1}'>{1}</div><div class='time'>{2}<br>[予] {3}</div><div class='error' title='{7}'>E{4}, D{5}, S{6}<br>{7}</div><div class='file' title='{8}'>{8}</div></div>"
+					.format(id,
+							title.escapeHTML(),
+							time,
+							schTime,
+							error,
+							drop,
+							scramble,
+							message == "" ? "OK" : message,
+							file,
+							code == 0 ? "" : "abnormal"
+							);
+			list += res;
+		}
+		
+		if(results.length == 0)
+		{
+			list = "録画はありません";
+		}
+		
+		$("#result-list").append(list);
+	});
+});
+</script>
+
+</head><body>
+<div id="menu"></div>
+<div id="content">
+	<div id="result-list"></div>
+	<div class="desc">最近50件まで表示しています</div>
+	<div class="desc">省略されているテキストは、マウスを乗せると全文が表示されます</div>
+</div>
+</body></html>

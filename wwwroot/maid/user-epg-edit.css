@@ -1,0 +1,42 @@
+#content
+{
+	padding-left: 6em;
+	display: flex;
+}
+
+.button-col
+{
+	padding-top: 3em;
+}
+
+.input
+{
+	font-size: 100%;
+}
+
+select
+{
+	width: 12em;
+}
+
+#content div
+{
+	margin: 0.5em;
+}
+
+.button
+{
+	width: 6em;
+	margin-bottom: 0.5em;
+}
+
+#submit
+{
+	margin-top: 2em;
+	font-weight:bold;
+}
+
+#add-butonn
+{
+	width: 3em;
+}

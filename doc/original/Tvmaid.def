@@ -1,0 +1,15 @@
+;TVTestのパス
+tvtest=C:\tv\TVTest.exe
+
+:録画ファイルを保存するフォルダ
+record.folder=c:\tv
+
+:録画マージン
+record.margin.start=-30
+record.margin.end=-10
+
+:録画ファイル名を指定
+record.file={title}-{start-time}.ts
+
+:番組表取得の時間
+epg.autoupdate.hour=9

@@ -1,0 +1,137 @@
+#option
+{
+	width: 40em;
+	margin-left: 8em;
+}
+
+#main
+{
+	display: inline-flex;
+}
+
+#event-count
+{
+	height: 1em;
+}
+
+#result
+{
+	margin-left: 8em;
+	width: 35em;
+}
+
+#result a
+{
+	text-decoration: none;
+}
+
+#search
+{
+	width: 6em;
+}
+
+.title
+{
+	color: #0066CC;
+}
+
+.search
+{
+	background-color: #4683ea;
+	color: white;
+}
+
+.reserve
+{
+	background-color: #C01C2E;
+	color: white;
+}
+
+.input
+{
+	font-size: 100%;
+}
+
+#keyword-box
+{
+	margin-bottom: 0.5em;
+}
+
+#keyword
+{
+	width: 30em;
+}
+
+.event
+{
+	margin-bottom: 2em;
+}
+
+.event-info
+{
+	font-size: small;
+}
+
+.event-date
+{
+	color: dimgray;
+}
+
+form
+{
+	margin-bottom: 0.5em;
+}
+
+#event-count
+{
+	margin-bottom: 1em;
+	color: darkgray;
+}
+
+#chrome-scroll
+{
+	height: 1000em;
+}
+
+#presetword
+{
+	padding: 1em;
+	border-width: 0px 0px 0px 1px;
+	border-style: solid;
+	border-color: lightgray;
+	margin-left: 2em;
+	white-space: nowrap;
+	font-size: small;
+}
+
+#detailLink
+{
+	margin-top: 0.5em;
+}
+
+#service
+{
+	width: 11em;
+}
+
+#genre
+{
+	width: 11em;
+}
+
+#hour
+{
+	width: 6em;
+}
+
+#week
+{
+	width: 6em;
+}
+
+.reserved
+{
+	font-weight:bold;
+	margin-left: 1em;
+	color: red;
+}

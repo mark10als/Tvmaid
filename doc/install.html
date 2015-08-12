@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html; charset=Shift_JIS" http-equiv="content-type">
+    <title>Tvmaid インストールマニュアル</title>
+    <link rel="stylesheet" type="text/css" href="help.css" charset="UTF-8">
+  </head>
+  <body>
+    <h1>Tvmaid インストールマニュアル</h1>
+    <h2>インストール </h2>
+    <h3>TVTestの設定</h3>
+    TVTestでTVを視聴できる状態にしてください。<br>
+    <br>
+    <em>注意</em><br>
+    地域によっては、TVTestのチャンネルスキャンで同じ放送局が複数取得できることがあります。<br>
+    Tvmaidはこれらを同時に使えません。1つを残して他は無効(チェックを外す)にしてください。<br>
+    <br>
+    Tvmaidのセットアップがうまくいかない時は、TVTestのバージョンを確認してください。<br>
+    <br>
+    <h3>必要なプログラムのダウンロードとインストール</h3>
+    Microsoft .NET Framework 4 (Web インストーラー)<br>
+    <a target="_blank" href="http://www.microsoft.com/ja-jp/download/details.aspx?id=17851">http://www.microsoft.com/ja-jp/download/details.aspx?id=17851</a><br>
+    <br>
+    「Microsoft .NET Framework 4 Client Profile」というのもありますが、それではダメです。<br>
+    <br>
+    <br>
+    Visual Studio 2013 の Visual C++ 再頒布可能パッケージ<br>
+    <a href="http://www.microsoft.com/ja-jp/download/details.aspx?id=40784"
+      target="_blank">http://www.microsoft.com/ja-jp/download/details.aspx?id=40784</a><br>
+    <br>
+    (<span style="font-weight: bold;">vcredist_x86.exe</span>をインストールしてください)<br>
+    <h3>Tvmaidの配置</h3>
+    Tvmaidのアーカイブを適当なフォルダに解凍します。<br>
+    Vista以降では、Program Filesフォルダには入れないでください。<br>
+    <br>
+    <span style="font-weight: bold;">XP以外</span>(Vista、7、8)の場合、Tvmaidフォルダの「<span
+      style="font-weight: bold;">web.bat</span>」を<span style="font-weight: bold;">管理者で実行</span>してください。<br>
+    これは、Tvmaidの内蔵Webサーバを実行可能にする設定です。<br>
+    <h3>セットアップ</h3>
+    Setup.exeを実行してください。<br>
+    <br>
+    TVTestの場所と録画フォルダを指定します。<br>
+    <br>
+    次にチューナを指定します。<br>
+    Bonドライバを指定して、チューナ名を入力してください。<br>
+    以下の点に注意してください。<br>
+    <h4>Bonドライバ</h4>
+    同じBonドライバを複数指定できます。ただし、TVTestで同時に使用できる場合です。<br>
+    Bonドライバの仕様によります。<br>
+    例えば、BonDriver_PT-ST（人柱版３）は同時使用が可能ですが、古いBonドライバだと同時使用できないものもあります。<br>
+    この場合は、リネームして使用してください。<br>
+    <br>
+    Bonドライバのファイル名のみを指定できます。<br>
+    「ファイル名のみを追加」にチェックを入れてください。<br>
+    「TVTest検索フォルダ」にあるBonドライバのみ、この指定ができます。<br>
+    <h4>チューナ名</h4>
+    チューナ名に「=」は使えません。<br>
+    同じチューナ名を複数指定できません。<br>
+    <br>
+    チューナの指定で、順番は意味があります。<br>
+    録画予約は、上に指定したものから順番に使われます。<br>
+    <br>
+    チューナの設定が終わったら、設定終了ボタンを押してください。<br>
+    チューナ情報を読み込み、Tvmaidが起動します。<br>
+    また、自動的にTvmaid用プラグインが、TVTestへコピーされます。<br>
+    <h3>番組表取得</h3>
+    右クリック→番組表取得を選択し、しばらく待ちます。<br>
+    これで使える状態になります。<br>
+    <br>
+    チューナの状態を見るには、タスクトレイアイコンをダブルクリックし、チューナモニタを表示してください。<br>
+    番組表は、<a href="http://localhost:20000/maid/epg.html">http://localhost:20000/maid/epg.html</a>をブラウザで開いてください。<br>
+    <br>
+    その他の操作方法は、<a href="manual.html">マニュアル</a>を参照してください。<br>
+    <br>
+    番組表取得で、チューナモニタにエラーが表示される場合は、チューナの設定が間違っていることが考えられます。<br>
+    Setupを再度実行し、チューナの数、ドライバ名等を再確認してみてください。<br>
+    <br>
+    <br>
+    Tvmaidは常時起動しておいてください。<br>
+    再起動時、自動で起動するように、<span style="font-weight: bold;">スタートアップに登録</span>してください。<br>
+    <h2> アンインストール</h2>
+    <span style="font-weight: bold;">web-del.bat</span>を<span style="font-weight: bold;">管理者で実行</span>してください。<br>
+    web.batで登録した設定を削除します。<br>
+    <br>
+    TVTestのPluginフォルダのTvmaidPlugin.tvtpを削除してください。<br>
+    Tvmaidのフォルダを削除してください。<br>
+    レジストリは使用していません。<br>
+    <br>
+    <h2> </h2>
+  </body>
+</html>

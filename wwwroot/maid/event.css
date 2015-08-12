@@ -1,0 +1,30 @@
+#content
+{
+	padding-left: 8em;
+	width: 35em;
+}
+
+#title
+{
+	font-weight:bold;
+}
+
+hr
+{
+	border-width: 1px 0px 0px 0px;
+	border-style: solid;
+}
+
+#search
+{
+	background-color: #4683ea;
+	color: white;
+	text-decoration: none;
+}
+
+#reserve
+{
+	background-color: #C01C2E;
+	color: white;
+	text-decoration: none;
+}

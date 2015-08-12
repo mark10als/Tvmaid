@@ -1,0 +1,214 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<title>自動録画予約編集</title>
+<meta http-equiv="content-type" content="text/html;" charset="UTF-8">
+
+<link rel="stylesheet" type="text/css" href="base.css" charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="auto-record-edit.css" charset="UTF-8">
+
+<script type="text/javascript" src="jquery.js" charset="UTF-8"></script>
+<script type="text/javascript" src="xdate.js" charset="UTF-8"></script>
+<script type="text/javascript" src="webapi.js" charset="UTF-8"></script>
+<script type="text/javascript" src="util.js" charset="UTF-8"></script>
+<script type="text/javascript" src="js-util.js" charset="UTF-8"></script>
+<script type="text/javascript" src="search.js" charset="UTF-8"></script>
+<script type="text/javascript" src="search-form.js" charset="UTF-8"></script>
+<script type="text/javascript" src="genre.js" charset="UTF-8"></script>
+
+<script language="javascript">
+var autoId = -1;
+
+$(function()
+{
+	writeMenu();
+	setAutoRecordList();
+	
+	var id = getQueryString("id", -1);
+	if(id == -1)
+	{
+		setService(null);
+		setOption(null);
+		return;
+	}
+	
+	setAutoRecord(id);
+});
+
+
+function setAutoRecordList()
+{
+	var sql = "select id, title, status from auto_record";
+	
+	getTable(sql, function(ret)
+	{
+		if(ret.Code != 0)
+		{
+			alert("自動予約リストの取得に失敗しました。\n理由 : " + ret.Message);
+			return;
+		}
+		
+		var records = ret.Data1;
+		var list = "";
+		
+		for (var i = 0; i < records.length; i++)
+		{
+			var id		= records[i][0];
+			var title	= records[i][1];
+			var status	= records[i][2];
+
+			var rec = "<div class='auto-record {2}'><a href='auto-record-edit.html?id={0}'>{1}</a></div>"
+					.format(id,
+							title.escapeHTML(),
+							(status & 1) > 0 ? "" : "disable"
+							);
+			list += rec;
+		}
+		
+		$("#auto-list").append(list);
+	});
+}
+
+function setAutoRecord(id)
+{
+	var sql = "select id, option, status, title from auto_record where id = " + id;
+	getTable(sql, function(ret)
+	{
+		if(ret.Code != 0)
+		{
+			alert("自動予約の取得に失敗しました。\n[詳細] " + ret.Message);
+			return;
+		}
+		
+		if(ret.Data1.length == 0)
+		{
+			alert("指定された自動予約がありません。");
+			return;
+		}
+		
+		var rec = ret.Data1[0];
+		
+		var id		= rec[0];
+		var option	= JSON.parse(rec[1]);
+		var status	= rec[2];
+		var title	= rec[3];
+		
+		autoId = id;
+		$("#status").val(status & 1);
+		$("#title").val(title);
+		$("#keyword").val(option.keyword);
+		setService(option.service);
+		setOption(option);
+	});
+}
+
+function addAutoRecord()
+{
+	if($("#title").val() == "")
+	{
+		alert("タイトルを付けてください。");
+		return;
+	}
+	
+	if($("#keyword").val() == "")
+	{
+		alert("キーワードを入力してください(キーワード無しでは登録できません)。");
+		return;
+	}
+	
+	var obj = getInputObject();
+	var json = JSON.stringify(obj);
+	var sql = getSearchSql(obj);
+	
+	webapi({
+		"api":		"AddAutoRecord",
+		"id":		autoId,
+		"sql":		sql,
+		"option":	json,
+		"status":	$("#status").val(),
+		"title":	$("#title").val()
+	},
+	function(ret)
+	{
+		if (ret.Code != 0)
+		{
+			alert("登録に失敗しました。\n理由 : " + ret.Message);
+			return;
+		}
+		alert("登録しました。");
+		location.href = "auto-record-edit.html?id=" + ret.Data1;
+	});
+
+	return false;
+}
+
+function removeAutoRecord()
+{
+	if(confirm("この予約を削除しますか？\n（自動予約を削除すると、自動で登録された予約も削除されます）"))
+	{
+		webapi({ "api":"RemoveAutoRecord", "id":autoId }, function(ret)
+		{
+			if (ret.Code != 0)
+			{
+				alert("削除に失敗しました。\n理由 : " + ret.Message);
+				return;
+			}
+			alert("削除しました。");
+			location.href = "auto-record-edit.html";
+		});
+	}
+}
+</script>
+
+</head><body>
+<div id="menu"></div>
+<div id="content">
+	<div id="edit">
+	<form method="get" action="search.html" target='_blank'>
+			<div class="item">
+				<div class="caption">検索名</div>
+				<input class="input long-text" id="title" type="text">
+			</div>
+			<div class="item">
+				<div class="caption"></div>
+				<div class="desc">検索名は表示用で、検索には影響ありません。</div>
+			</div>
+			<div class="item">
+				<div class="caption">自動予約</div>
+			    <select class="input" id="status">
+					<option value="1">有効</option>
+					<option value="0">無効</option>
+			    </select>
+			</div>
+			<div class="item">
+				<div class="caption">キーワード</div>
+				<input class="input long-text" id="keyword" name="keyword" type="search">
+			</div>
+			<div class="item">
+				<div class="caption">詳細条件</div>
+				<div id="detail">
+					<select class="input" id="service" name="service" multiple size="8">
+						<option value="-1">指定しない</option>
+					</select>
+					<select class="input" id="genre" name="genre" multiple size="8">
+						<option value="-1">指定しない</option>
+					</select>
+					<select class="input" id="week" name="week" multiple size="8">
+						<option value="-1">指定しない</option>
+					</select>
+					<select class="input" id="hour" name="hour" multiple size="8">
+						<option value="-1">指定しない</option>
+					</select>
+				</div>
+			</div>
+			<hr>
+			<div class="item button-box">
+				<div class="caption"></div>
+				<input class="input button" type="button" value="この条件で検索" onclick="search(false)">
+				<input class="input button" type="button" value="登録" onclick="addAutoRecord()">
+				<input class="input button" type="button" value="削除" onclick="removeAutoRecord()">
+			</div>
+		</form>
+	</div>
+	<div id="auto-list"></div>
+</div>
+</body></html>

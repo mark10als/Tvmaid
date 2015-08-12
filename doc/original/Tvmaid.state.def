@@ -1,0 +1,10 @@
+﻿tunermon.window.visible=1
+tunermon.window.left=1134
+tunermon.window.top=335
+tunermon.window.width=743
+tunermon.window.height=436
+tunermon.window.tuner.width=137
+tunermon.window.tuner.height=258
+tunermon.window.service.name.width=202
+tunermon.window.service.time.width=129
+tunermon.window.service.event.width=245

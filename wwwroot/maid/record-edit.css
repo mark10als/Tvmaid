@@ -1,0 +1,60 @@
+#content
+{
+	margin-left: 8em;
+	display: inline-block;
+}
+
+form
+{
+}
+
+.item
+{
+	display: flex;
+	margin: 0.5em;
+}
+
+.caption
+{
+	text-align: right; 
+	width: 6em;
+	margin-right: 1em;
+}
+
+.input
+{
+	font-size: 100%;
+}
+
+.long-text
+{
+	width: 30em;
+}
+
+.title
+{
+	width: 18em;
+}
+
+.date
+{
+	width: 10em;
+	margin-right: 1em;
+}
+
+#reserve
+{
+	width: 8em;
+}
+
+.desc
+{
+	font-size: small;
+}
+
+hr
+{
+	border-width: 1px 0px 0px 0px;
+	border-style: solid;
+	margin: 0.5em 0em;
+}

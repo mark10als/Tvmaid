@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using System.Collections.Generic;
 using Microsoft.Win32;
+using Tvmaid.Properties;
 
 namespace Tvmaid
 {
@@ -16,7 +17,7 @@ namespace Tvmaid
 
             try
             {
-                this.notifyIcon.Icon = new System.Drawing.Icon(System.IO.Path.Combine(Util.GetUserPath(), "Tvmaid.ico"));
+                this.notifyIcon.Icon = Resources.Tvmaid;
                 this.notifyIcon.Text += Program.AppVer;
             }
             catch (Exception e)

@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RecordMon));
             this.listView = new System.Windows.Forms.ListView();
             this.titleHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.serviceHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -61,7 +62,7 @@
             this.listView.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.listView.MultiSelect = false;
             this.listView.Name = "listView";
-            this.listView.Size = new System.Drawing.Size(866, 184);
+            this.listView.Size = new System.Drawing.Size(866, 185);
             this.listView.TabIndex = 0;
             this.listView.UseCompatibleStateImageBehavior = false;
             this.listView.View = System.Windows.Forms.View.Details;
@@ -106,10 +107,10 @@
             this.toolBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.updateButton,
             this.toolStripSeparator1});
-            this.toolBar.Location = new System.Drawing.Point(0, 184);
+            this.toolBar.Location = new System.Drawing.Point(0, 185);
             this.toolBar.Name = "toolBar";
             this.toolBar.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.toolBar.Size = new System.Drawing.Size(866, 26);
+            this.toolBar.Size = new System.Drawing.Size(866, 25);
             this.toolBar.TabIndex = 1;
             // 
             // updateButton
@@ -117,7 +118,7 @@
             this.updateButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.updateButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.updateButton.Name = "updateButton";
-            this.updateButton.Size = new System.Drawing.Size(43, 23);
+            this.updateButton.Size = new System.Drawing.Size(35, 22);
             this.updateButton.Text = "更新";
             this.updateButton.ToolTipText = "すぐに更新";
             this.updateButton.Click += new System.EventHandler(this.updateButton_Click);
@@ -125,7 +126,7 @@
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 26);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
             // 
             // timer
             // 
@@ -139,12 +140,13 @@
             // 
             // RecordMon
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 23F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(866, 210);
             this.Controls.Add(this.listView);
             this.Controls.Add(this.toolBar);
             this.Font = new System.Drawing.Font("メイリオ", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.MaximizeBox = false;
             this.MinimizeBox = false;

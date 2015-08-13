@@ -48,7 +48,6 @@ namespace Maidmon
 
             try
             {
-                this.Icon = new System.Drawing.Icon(System.IO.Path.Combine(Util.GetUserPath(), "Tvmaid.ico"));
                 EnableDoubleBuffer(listView);
 
                 LoadDef();

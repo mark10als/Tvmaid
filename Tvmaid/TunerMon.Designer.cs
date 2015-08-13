@@ -30,6 +30,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TunerMon));
             this.serviceView = new System.Windows.Forms.ListView();
             this.nameHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.timeHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -44,11 +45,11 @@
             this.tunerView = new System.Windows.Forms.TreeView();
             this.split2 = new System.Windows.Forms.SplitContainer();
             this.logBox = new System.Windows.Forms.RichTextBox();
+            this.logMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.clearLogMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.serviceTimer = new System.Windows.Forms.Timer(this.components);
             this.tunerTimer = new System.Windows.Forms.Timer(this.components);
             this.logTimer = new System.Windows.Forms.Timer(this.components);
-            this.logMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.clearLogMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.serviceMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.split1)).BeginInit();
             this.split1.Panel1.SuspendLayout();
@@ -109,37 +110,37 @@
             this.toolStripMenuItem2,
             this.stopRecMenuItem});
             this.serviceMenu.Name = "contextMenu";
-            this.serviceMenu.Size = new System.Drawing.Size(246, 88);
+            this.serviceMenu.Size = new System.Drawing.Size(208, 82);
             // 
             // viewMenuItem
             // 
             this.viewMenuItem.Font = new System.Drawing.Font("Meiryo UI", 9F, System.Drawing.FontStyle.Bold);
             this.viewMenuItem.Name = "viewMenuItem";
-            this.viewMenuItem.Size = new System.Drawing.Size(245, 24);
+            this.viewMenuItem.Size = new System.Drawing.Size(207, 22);
             this.viewMenuItem.Text = "見る(&V)";
             this.viewMenuItem.Click += new System.EventHandler(this.viewMenuItem_Click);
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(242, 6);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(204, 6);
             // 
             // reserveMenuItem
             // 
             this.reserveMenuItem.Name = "reserveMenuItem";
-            this.reserveMenuItem.Size = new System.Drawing.Size(245, 24);
+            this.reserveMenuItem.Size = new System.Drawing.Size(207, 22);
             this.reserveMenuItem.Text = "現在の番組を録画予約(&R)";
             this.reserveMenuItem.Click += new System.EventHandler(this.reserveMenuItem_Click);
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(242, 6);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(204, 6);
             // 
             // stopRecMenuItem
             // 
             this.stopRecMenuItem.Name = "stopRecMenuItem";
-            this.stopRecMenuItem.Size = new System.Drawing.Size(245, 24);
+            this.stopRecMenuItem.Size = new System.Drawing.Size(207, 22);
             this.stopRecMenuItem.Text = "現在の録画を中断する(&A)";
             this.stopRecMenuItem.Click += new System.EventHandler(this.stopRecMenuItem_Click);
             // 
@@ -215,6 +216,20 @@
             this.logBox.TabIndex = 9;
             this.logBox.Text = "";
             // 
+            // logMenu
+            // 
+            this.logMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.clearLogMenuItem});
+            this.logMenu.Name = "contextMenu";
+            this.logMenu.Size = new System.Drawing.Size(146, 26);
+            // 
+            // clearLogMenuItem
+            // 
+            this.clearLogMenuItem.Name = "clearLogMenuItem";
+            this.clearLogMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.clearLogMenuItem.Text = "すべてクリア(&C)";
+            this.clearLogMenuItem.Click += new System.EventHandler(this.clearLogMenuItem_Click);
+            // 
             // serviceTimer
             // 
             this.serviceTimer.Interval = 5000;
@@ -230,27 +245,14 @@
             this.logTimer.Interval = 1000;
             this.logTimer.Tick += new System.EventHandler(this.logTimer_Tick);
             // 
-            // logMenu
-            // 
-            this.logMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.clearLogMenuItem});
-            this.logMenu.Name = "contextMenu";
-            this.logMenu.Size = new System.Drawing.Size(176, 56);
-            // 
-            // clearLogMenuItem
-            // 
-            this.clearLogMenuItem.Name = "clearLogMenuItem";
-            this.clearLogMenuItem.Size = new System.Drawing.Size(175, 24);
-            this.clearLogMenuItem.Text = "すべてクリア(&C)";
-            this.clearLogMenuItem.Click += new System.EventHandler(this.clearLogMenuItem_Click);
-            // 
             // TunerMon
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 23F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(786, 385);
             this.Controls.Add(this.split2);
             this.Font = new System.Drawing.Font("メイリオ", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.MaximizeBox = false;
             this.MinimizeBox = false;

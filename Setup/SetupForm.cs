@@ -28,8 +28,6 @@ namespace Setup
 
             Util.CopyUserFile();
 
-            this.Icon = new System.Drawing.Icon(System.IO.Path.Combine(Util.GetUserPath(), "Tvmaid.ico"));
-
             tvmaidDef = new DefineFile(Path.Combine(Util.GetUserPath(), "Tvmaid.def"));
             tvmaidDef.Load();
             tunerDef = new DefineFile(Path.Combine(Util.GetUserPath(), "tuner.def"));

@@ -16,12 +16,14 @@ namespace Tvmaid
         public SleepCountdown()
         {
             InitializeComponent();
+            countProgress.Maximum = count;
         }
 
         private void timer_Tick(object sender, EventArgs e)
         {
             count--;
             countLabel.Text = count + " 秒";
+            countProgress.Value = count;
             if(count < 0)
             {
                 this.DialogResult = DialogResult.OK;

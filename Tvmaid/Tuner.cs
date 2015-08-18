@@ -34,7 +34,7 @@ namespace Tvmaid
             Unknown     //不明
         }
 
-        public Tuner(string name, string driverPath) 
+        public Tuner(string name, string driverPath)
         {
             Id = -1;
             Name = name;
@@ -132,11 +132,12 @@ namespace Tvmaid
 
                 tvp.SetService(service);
             }
-            catch(TvProcessExceotion e)
+            catch (TvProcessExceotion e)
             {
-                if(e.Code == (int)TvProcess.ErrorCode.SetService)
+                if (e.Code == (int)TvProcess.ErrorCode.SetService)
                 {
                     //リトライしてみる
+                    Log.Write("■チャンネル変更に失敗しました。再度の変更を試みます。");
                     System.Threading.Thread.Sleep(1000);
                     tvp.SetService(service);
                 }
@@ -185,11 +186,11 @@ namespace Tvmaid
                         );
             sql.Execute();
         }
-        
+
         //番組表取得
         public List<Event> GetEvents(Sql sql, Service service)
         {
-            List<Event> list = null ;
+            List<Event> list = null;
             try
             {
                 list = tvp.GetEvents(service);

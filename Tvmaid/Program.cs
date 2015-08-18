@@ -11,7 +11,9 @@ namespace Tvmaid
         public static DefineFile UserDef = null;    //ユーザ定義ファイル
         public static DefineFile StateDef = null;   //状態保存ファイル
         public static string Logo = "Tvmaid";
-        public static string Version = "R4";
+        public static string Version = "R4 (´･ω･`) mod3 + mark10als";
+
+        public static int cmd_multi_now = 0; //■追加　現在マルチスレッドでコマンド実行中なら1
 
 #if DEBUG
         public static string AppVer = Logo + " " + Version + " (debug)";
@@ -173,6 +175,12 @@ namespace Tvmaid
             if (Int32.TryParse(UserDef["record.margin.end"], out ret) == false)
             {
                 throw new AppException("録画マージンは数値を指定してください。record.margin.end");
+            }
+            //mark10als
+            string recfile = Program.UserDef["record.file"];
+            if (recfile == null)
+            {
+                throw new AppException("録画ファイル名が設定されていません。record.file");
             }
             if (Int32.TryParse(UserDef["epg.autoupdate.hour"], out ret) == false)
             {

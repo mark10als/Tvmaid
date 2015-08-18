@@ -91,7 +91,7 @@ namespace Tvmaid
 
                         Thread.Sleep(mainSleep);
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         Log.Write("エラーが発生しました。[詳細] " + e.Message);
                     }
@@ -133,9 +133,9 @@ namespace Tvmaid
             //自動予約を取得
             var autoList = new List<AutoRecord>();
             sql.Text = "select * from auto_record where status = 1 and sql <> ''";
-            using(var t = sql.GetTable())
+            using (var t = sql.GetTable())
             {
-                while(t.Read())
+                while (t.Read())
                 {
                     autoList.Add(new AutoRecord(t));
                 }
@@ -195,15 +195,49 @@ namespace Tvmaid
                 var tuner = (Tuner)tunerObj;
                 bool epgOpen = false;
 
+                //■追加
+                int flag_pre = 0;
+                int tvtest_no_dummy = 0;
+                try
+                {
+                    tvtest_no_dummy = Program.UserDef["tvtest.no.dummy"].ToInt();
+                }
+                catch {}
+
                 while (stop == false)
                 {
                     Record rec = null;
+                    Record rec_pre = null; //■追加
                     try
                     {
+                        //■追加
+                        //■同一サービス連続録画に備えてダミーTVTestをスルーするためのギミック
+                        if (flag_pre < 0)
+                        {
+                            flag_pre++;
+                        }
+                        //連続録画でもサービスIDが違う場合はダミーTVTestを起動しようかと思ったが、チャンネル変更が成功することに賭けることにした
+                        //■録画開始2分前にダミーTVTestを起動する
+                        if (tvtest_no_dummy == 0)
+                        {
+                            if (flag_pre >= 0 && flag_pre < 2) //2回目までは実行する
+                            {
+                                rec_pre = GetEnableRecord_pre(sql, tuner);
+                                if (rec_pre != null)
+                                {
+                                    flag_pre++;
+                                    StartRec_pre(sql, rec_pre, tuner);
+                                    Thread.Sleep(5000); //念のため5秒空ける　が、エラーの場合はここは通らない
+                                    flag_pre = 9; //すでにダミーTVTestを1度起動して成功したことを記録
+                                }
+                            }
+                        }
+
                         rec = GetEnableRecord(sql, tuner);
 
                         if (rec != null)
                         {
+                            flag_pre = -2; //■追加 1度はダミーTVTest起動チェックをスルーするようにセット（同一サービス連続録画の場合に備えて）
                             StartRec(sql, rec, tuner);  //録画開始
                         }
                         else
@@ -212,12 +246,14 @@ namespace Tvmaid
                             var service = epgQu.Dequ(tuner);
                             if (service != null)
                             {
+                                flag_pre = 0; //■追加 念のため
                                 Log.Write(tuner.Name + ": 番組表を取得しています... " + service.Name);
                                 tuner.Open();
                                 epgOpen = true;
                                 tuner.SetService(service);
+                                //■メモ　ここでEPG取得25秒間
                                 Thread.Sleep(epgSleep);
-                                
+
                                 var list = tuner.GetEvents(sql, service);    //番組表取得
                                 if (CheckRetry(list))
                                 {
@@ -231,12 +267,12 @@ namespace Tvmaid
                                         list = tuner.GetEvents(sql, service);
                                     }
                                 }
-                                
+
                                 UpdateRecordTime(sql, service);
                             }
                             else
                             {
-                                if(epgOpen)
+                                if (epgOpen)
                                 {
                                     try { tuner.Close(); }
                                     catch { }
@@ -250,6 +286,7 @@ namespace Tvmaid
                     catch (Exception e)
                     {
                         Log.Write(tuner.Name + ": 録画を中断しました。[詳細]" + e.Message);
+                        Thread.Sleep(5000); //■5秒待機
                     }
                 }
                 if (epgOpen)
@@ -264,7 +301,27 @@ namespace Tvmaid
         private Record GetEnableRecord(Sql sql, Tuner tuner)
         {
             Record rec = null;
-            int margin = Program.UserDef["record.margin.start"].ToInt();
+            //■削除 int margin = Program.UserDef["record.margin.start"].ToInt();
+            int margin = Program.UserDef["record.margin.start"].ToInt() - 10; //■追加　きっちり録画開始のため、録画開始10秒前に起動するようにした
+            var now = DateTime.Now - new TimeSpan(0, 0, margin);
+
+            sql.Text = @"select * from record where tuner = '{0}' and status & {2} and start <= {1} and end > {2} order by start limit 1"
+                .Formatex(tuner.Name, now.Ticks, (int)Record.RecStatus.Enable);
+            using (var t = sql.GetTable())
+            {
+                if (t.Read())
+                {
+                    rec = new Record(t);
+                }
+            }
+            return rec;
+        }
+
+        //■ダミーTVTest 開始時間前に起動＆終了するためのクエリ
+        private Record GetEnableRecord_pre(Sql sql, Tuner tuner)
+        {
+            Record rec = null;
+            int margin = Program.UserDef["record.margin.start"].ToInt() - 90; //90秒前
             var now = DateTime.Now - new TimeSpan(0, 0, margin);
 
             sql.Text = @"select * from record where tuner = '{0}' and status & {2} and start <= {1} and end > {2} order by start limit 1"
@@ -287,12 +344,12 @@ namespace Tvmaid
             var end = curr + new TimeSpan(4, 0, 0, 0);  //4日後 
             var sum = new TimeSpan(0, 0, 0);            //歯抜けの合計時間
 
-            foreach(var ev in list)
+            foreach (var ev in list)
             {
                 if (ev.Start > end) { break; }
 
                 var time = ev.Start - curr;
-                if(time.Ticks > 0)
+                if (time.Ticks > 0)
                 {
                     sum += time;
                 }
@@ -326,7 +383,7 @@ namespace Tvmaid
             epgQu.Clear();
             Log.Write("番組表取得を中止しました。");
         }
-        
+
         //ファイル名に使えない文字を変換
         string ConvertFileName(string name)
         {
@@ -339,11 +396,21 @@ namespace Tvmaid
         }
 
         //ファイル名マクロ変換
-        public string ConvertFileMacro(Record rec, string name)
+        //public string ConvertFileMacro(Record rec, string name) //■削除
+        public string ConvertFileMacro(Record rec, string name, string servicename) //■追加
         {
             var dic = new Dictionary<string, string>();
             dic.Add("{title}", rec.Title);
             dic.Add("{start-time}", rec.StartTime.ToString("yyMMdd-HHmm"));
+            //サービスID //■追加
+            long sid10 = rec.Fsid % (256 * 256);
+            string sid_str10 = sid10.ToString("D");
+            string sid_str16 = Convert.ToString(sid10, 16);
+            dic.Add("{service-id}", sid_str16);
+            //放送局名 //■追加
+            dic.Add("{service-name}", servicename);
+            //mark10als
+            dic.Add("{end-time}", rec.EndTime.ToString("yyMMdd-HHmm"));
 
             foreach (var macro in dic)
             {
@@ -372,19 +439,32 @@ namespace Tvmaid
             var tsStatus = new TsStatus();
             var recContinue = false;    //録画継続フラグ(録画時間変更に使用)
 
+            var path = ""; //■追加
+
             try
             {
-                Log.Write(tuner.Name + ": 録画を開始します。" + rec.Title);
+                //Log.Write(tuner.Name + ": 録画を開始します。" + rec.Title); //■削除
+                Log.Write(tuner.Name + ": 録画準備をしています。" + rec.Title);  //■追加
                 SleepState.SetSleepStop(true);
                 rec.SetRecoding(sql, true);
- 
+
                 tuner.Open();
                 var service = new Service(sql, rec.Fsid);
                 tuner.SetService(service);
 
-                string file = ConvertFileMacro(rec, Program.UserDef["record.file"]);
-                var path = System.IO.Path.Combine(Program.UserDef["record.folder"], file);
+                //string file = ConvertFileMacro(rec, Program.UserDef["record.file"]); //■削除
+                string file = ConvertFileMacro(rec, Program.UserDef["record.file"], service.Name); //■追加
+                //var path = System.IO.Path.Combine(Program.UserDef["record.folder"], file); //■削除
+                path = System.IO.Path.Combine(Program.UserDef["record.folder"], file); //■追加
                 path = CheckFilePath(path);
+                //■追加　きっちり時間が来るまで待機
+                int seconds_prev = Program.UserDef["record.margin.start"].ToInt();
+                while (DateTime.Now < rec.StartTime + new TimeSpan(0, 0, seconds_prev))
+                {
+                    Thread.Sleep(0);
+                }
+                Log.Write(tuner.Name + ": 録画を開始します。" + rec.Title);
+
                 tuner.StartRec(path);
 
                 result.Title = rec.Title;
@@ -400,7 +480,7 @@ namespace Tvmaid
 
                 while (DateTime.Now < rec.EndTime + new TimeSpan(0, 0, margin))
                 {
-                    if(stop)
+                    if (stop)
                     {
                         throw new AppException(tuner.Name + ": アプリケーション終了のため、録画を中断します。");
                     }
@@ -408,7 +488,7 @@ namespace Tvmaid
                     //現在の予約が有効かどうか確認
                     sql.Text = "select status from record where id = " + rec.Id;
                     object status = sql.GetData();
-                    if(status == null)  //予約が取り消された
+                    if (status == null)  //予約が取り消された
                     {
                         throw new AppException(tuner.Name + ": 予約が取り消されたため、録画を中断します。");
                     }
@@ -422,12 +502,12 @@ namespace Tvmaid
                     {
                         //番組の時間に変更がないか確認
                         Event ev = null;
-                        try 
+                        try
                         {
                             ev = tuner.GetEventTime(service, rec.Eid);
                             eventTimeError = false; //エラーフラグをリセット
                         }
-                        catch 
+                        catch
                         {
                             if (eventTimeError == false)    //何度もエラーが表示されないようにする
                             {
@@ -458,7 +538,7 @@ namespace Tvmaid
                         }
                     }
 
-                    if(tuner.GetState() != Tuner.State.Recoding)
+                    if (tuner.GetState() != Tuner.State.Recoding)
                     {
                         throw new AppException(tuner.Name + ": 録画が中断しました。");
                     }
@@ -474,7 +554,7 @@ namespace Tvmaid
                     result.Message = "番組時間の取得に失敗しました。録画は続行しました。";
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 result.Code = 1;
                 result.Message = e.Message;
@@ -487,7 +567,7 @@ namespace Tvmaid
                     if (tuner != null)
                     {
                         tuner.StopRec();
-                        tuner.Close();
+                        //■削除　tuner.Close();
                     }
                 }
                 catch (Exception e)
@@ -495,6 +575,20 @@ namespace Tvmaid
                     Log.Write("録画終了中エラーが発生しました。[詳細] " + e.Message);
                 }
 
+                //■追加
+                try
+                {
+                    if (tuner != null)
+                    {
+                        tuner.Close();
+                    }
+                }
+                catch (Exception ex9)
+                {
+                    Log.Write("チューナー終了中エラーが発生しました。[詳細] " + ex9.Message);
+                    TVTest_ForceStop(); //強制終了
+                }
+                
                 try
                 {
                     if (recContinue)
@@ -505,7 +599,7 @@ namespace Tvmaid
                     {
                         rec.SetComplete(sql);
                     }
-                    
+
                     SleepState.SetSleepStop(false);
 
                     result.Error = tsStatus.Error;
@@ -515,12 +609,263 @@ namespace Tvmaid
                     result.Add(sql);
 
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Log.Write("録画終了中エラーが発生しました。[詳細] " + e.Message);
                 }
 
                 Log.Write(tuner.Name + ": 録画が終了しました。" + rec.Title);
+            }
+
+            //■録画後処理
+            try
+            {
+                if (Program.UserDef["exe1"].Length > 0)
+                {
+                    Thread.Sleep(rec.Title.Length); //少々ばらつきを持たせるか・・
+
+                    Thread t = new Thread(new ParameterizedThreadStart(Execute_exe));
+                    string path2 = Path.GetDirectoryName(path);
+                    if (path2.Length > 0)
+                    {
+                        path2 = path2 + "\\";
+                    }
+                    t.Start(path2 + result.File);
+                }
+            }
+            catch
+            {
+                //実行するコマンドが無い。Program.UserDef["exe1"]が存在しなかった
+            }
+        }
+
+        //■ダミーTVTest起動＆終了
+        void StartRec_pre(Sql sql, Record rec, Tuner tuner)
+        {
+            var result = new Result();
+            var tsStatus = new TsStatus();
+
+            try
+            {
+                Log.Write(tuner.Name + ": ダミーTVTestを起動します。" + rec.Title);
+                SleepState.SetSleepStop(true);
+
+                tuner.Open();
+                var service = new Service(sql, rec.Fsid);
+                tuner.SetService(service);
+
+                Thread.Sleep(1000 * 12); //12秒視聴
+            }
+            catch (Exception e)
+            {
+                result.Code = 1;
+                result.Message = e.Message;
+                throw;
+            }
+            finally
+            {
+                try
+                {
+                    if (tuner != null)
+                    {
+                        tuner.Close();
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.Write("ダミーTVTest終了中エラーが発生しました。[詳細] " + e.Message);
+                    TVTest_ForceStop(); //エラーが起こった場合は強制終了
+                }
+
+                try
+                {
+                    SleepState.SetSleepStop(false);
+                }
+                catch (Exception e)
+                {
+                    Log.Write("ダミーTVTest終了中エラーが発生しました2。[詳細] " + e.Message);
+                }
+
+                Log.Write(tuner.Name + ": ダミーTVTestを終了しました。" + rec.Title);
+            }
+        }
+
+        //■コマンド実行（マルチスレッド）
+        static void Execute_exe(object f)
+        {
+            Program.cmd_multi_now++; //使用中
+            if (Program.cmd_multi_now == 1)
+            {
+                Program.cmd_multi_now = 0;
+            }
+            else
+            {
+                Program.cmd_multi_now = 1;
+            }
+            //同時実行があれば無くなるまで待機
+            int tu = 10 * 60 * 60 * 7; //7時間
+            while (Program.cmd_multi_now > 0 && tu > 0)
+            {
+                Thread.Sleep(100);
+                tu--;
+            }
+            if (tu == 0)
+            {
+                //タイムアウト　7時間経っても終わらない
+                Log.Write("7時間待機しても現在実行中のプロセスが終了しないのでコマンド実行を諦めました。");
+                return;
+            }
+            Program.cmd_multi_now = 1; //使用中
+            
+            //渡されたファイル名 キャストが必要
+            string FullpathFile = (string)f;
+            //Log.Write("FullpathFile=" + FullpathFile);
+
+            int i = 1;
+            try
+            {
+                while (Program.UserDef["exe" + i.ToString("D")].Length > 0)
+                {
+                    //実行ファイル名取得
+                    string exe_str = Program.UserDef["exe" + i.ToString("D")];
+                    exe_str = exe_str.Replace("\"",""); //"を削除
+                    //パラメーター取得
+                    string para = "";
+                    try
+                    {
+                        para = Program.UserDef["para" + i.ToString("D")];
+                    }
+                    catch
+                    {
+                        para = "";
+                    }
+                    //パラメータ入れ替え
+                    para = para.Replace("{file}", FullpathFile);
+
+                    //実行
+                    execute_exe(exe_str, para);
+
+                    i++;
+                }
+            }
+            catch //(Exception e)
+            {
+                //Log.Write(e.Message);
+            }
+            
+            Program.cmd_multi_now = 0; //使用終了
+        }
+
+        //■外部プログラム実行
+        static void execute_exe(string exestr, string para)
+        {
+            //カレントディレクトリ変更
+            try
+            {
+                string exefolder = System.IO.Path.GetDirectoryName(exestr);
+                System.IO.Directory.SetCurrentDirectory(exefolder);
+            }
+            catch (Exception ex)
+            {
+                Log.Write("カレントディレクトリ変更でエラーが発生しました。" + ex.Message);
+            }
+
+            //実行
+            try
+            {
+                //ProcessStartInfoオブジェクトを作成する
+                System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo();
+                //mark10als
+                //起動するファイルのパスを指定する
+                psi.FileName = exestr;
+                //コマンドライン引数を指定する
+                psi.Arguments = para;
+                psi.RedirectStandardInput = false;
+                //mark10als
+//                psi.RedirectStandardOutput = true;
+                psi.RedirectStandardOutput = false;
+                psi.UseShellExecute = false;
+                //作業フォルダ指定
+                string exefolder = System.IO.Path.GetDirectoryName(exestr);
+                psi.WorkingDirectory = exefolder;
+                //作業フォルダ
+                //ウィンドウを表示しないようにする
+                psi.CreateNoWindow = true;
+                //アプリケーションを起動する
+                System.Diagnostics.Process p = System.Diagnostics.Process.Start(psi);
+
+                //mark10als
+//                int do_wait = (10 * 60) * 60 * 6;
+                int do_wait = (1000 * 60) * 60 * 6;
+                //最大6時間待つ
+                Log.Write(exestr + " , " + para + "を実行開始しました");
+                //mark10als
+//                while (p.HasExited == false & do_wait > 0)
+//                {
+//                    //終わるまで待つ
+//                    do_wait -= 1;
+//                    System.Threading.Thread.Sleep(100);
+//                }
+//                if (do_wait == 0)
+//                {
+                p.WaitForExit(do_wait);
+                if (p.HasExited == false) {
+                    //タイムアウト
+                    Log.Write(exestr + " , " + para + "の実行がタイムアウトしました");
+                    Log.Write(exestr + " , " + para + "を強制終了します");
+                    p.Kill();
+                }
+                else
+                {
+                    Log.Write(exestr + " , " + para + "が実行終了しました");
+                }
+                //mark10als
+                p.Close();
+            }
+            catch (Exception ex)
+            {
+                Log.Write("【エラー】" + exestr + "の実行に失敗しました。" + ex.Message);
+            }
+            //カレントディレクトリを戻す
+            string ppath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            System.IO.Directory.SetCurrentDirectory(ppath);
+
+            Thread.Sleep(1000); //1秒待機
+        }
+
+        //■TVTestを強制終了
+        private void TVTest_ForceStop()
+        {
+            int tvtest_no_kill = 0;
+            try
+            {
+                tvtest_no_kill = Program.UserDef["tvtest.no.kill"].ToInt();
+            }
+            catch { }
+
+            if (tvtest_no_kill == 0)
+            {
+                System.Diagnostics.Process[] ps = System.Diagnostics.Process.GetProcessesByName("TVTest");
+
+                foreach (System.Diagnostics.Process p in ps)
+                {
+                    //クローズメッセージを送信する
+                    p.CloseMainWindow();
+
+                    //プロセスが終了するまで最大10秒待機する
+                    p.WaitForExit(10000);
+                    //プロセスが終了したか確認する
+                    if (p.HasExited)
+                    {
+                        Log.Write("TVTestを終了させました。");
+                    }
+                    else
+                    {
+                        //終了に応じないときは強制的に終了
+                        p.Kill();
+                        Log.Write("TVTestを強制的に終了させました。");
+                    }
+                }
             }
         }
     }
@@ -624,12 +969,9 @@ namespace Tvmaid
                 {
                     SleepState.SetSleepStop(false);
                 }
-                
+
                 return service;
             }
         }
     }
 }
-
-
-

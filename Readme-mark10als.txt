@@ -51,6 +51,29 @@ mark10alsの改造。
 	"record.file"が未設定ならエラーにする。
 ・録画ファイル名に対する変換文字列を追加
 	終了時間の変換を追加しました。「{end-time}で変換」
+	TVTest0.9.0を参考にして追加しました。
+	番組開始日時
+	{start-date}			年月日
+	{start-year}			年
+	{start-year2}			年(下2桁)
+	{start-month2}			月(2桁)
+	{start-day2}			日(2桁)
+	{start-time6}			時刻(時+分+秒)
+	{start-hour2}			時(2桁)
+	{start-minute2}			分(2桁)
+	{start-second2}			秒(2桁)
+	{start-day-of-week}		曜日(漢字)
+	番組終了日時
+	{end-date}				年月日
+	{end-year}				年
+	{end-year2}				年(下2桁)
+	{end-month2}			月(2桁)
+	{end-day2}				日(2桁)
+	{end-time6}				時刻(時+分+秒)
+	{end-hour2}				時(2桁)
+	{end-minute2}			分(2桁)
+	{end-second2}			秒(2桁)
+	{end-day-of-week}		曜日(漢字)
 ・録画終了後コマンド実行
 	リダイレクトを使用したバッチコマンドを指定したときに、
 	コマンドが実行されなかった。（私だけかも？）

@@ -1,9 +1,39 @@
 # Tvmaid R4 のmark10alsに依る改造版
-Version は、 "R4 (´･ω･`) mod3 + mark10als" としています。
+Version は、 "R4 (´･ω･`) mod4 + mark10als" としています。
 
 ## https://github.com/mark10als/Tvmaid
 
 これはTvmaid R4 に自分用に手を加えたものです。
+
+## ■前回からの変更点
+Tvmaid_nora_modの人のmod4での修正を取り込んだ
+・チャンネル変更失敗時にTVTestを再起動させる
+mark10alsの改造。
+・録画ファイル名に対する変換文字列を追加
+	TVTest0.9.0を参考にして追加しました。
+	番組開始日時
+	{start-date}			年月日
+	{start-year}			年
+	{start-year2}			年(下2桁)
+	{start-month2}			月(2桁)
+	{start-day2}			日(2桁)
+	{start-time6}			時刻(時+分+秒)
+	{start-hour2}			時(2桁)
+	{start-minute2}			分(2桁)
+	{start-second2}			秒(2桁)
+	{start-day-of-week}		曜日(漢字)
+	番組終了日時
+	{end-date}				年月日
+	{end-year}				年
+	{end-year2}				年(下2桁)
+	{end-month2}			月(2桁)
+	{end-day2}				日(2桁)
+	{end-time6}				時刻(時+分+秒)
+	{end-hour2}				時(2桁)
+	{end-minute2}			分(2桁)
+	{end-second2}			秒(2桁)
+	{end-day-of-week}		曜日(漢字)
+
 
 ## ■注意！
 これは、C#をはじめて見た超初心者が、グーグル先生に聞いて
@@ -38,18 +68,45 @@ maidの中の人が302でプログラムソースを公開してくださった時から、
 機能は、オリジナルに先人の機能が追加されています。
 「◆0X7hT.k8kU」の人の改造。
 ・Sleep待ちダイアログにProgressBarを追加 
-Tvmaid_nora_mod3の人の改造。
+Tvmaid_nora_modの人の改造。
+mod3までの修正
 ・録画ファイル名に対する変換文字列を追加
 ・録画終了後コマンド実行
 ・ダミーTVTest起動
 ・ぴったり録画開始
 ・TVTestが異常終了した場合、プロセスが残ったままになる場合があることへの対処
+mod4での修正
+・チャンネル変更失敗時にTVTestを再起動させる
 
 mark10alsの改造。
 ・user/Tvmaid.defのチェックの追加。
 	"record.file"が未設定ならエラーにする。
 ・録画ファイル名に対する変換文字列を追加
 	終了時間の変換を追加しました。「{end-time}で変換」
+	TVTest0.9.0を参考にして追加しました。
+	番組開始日時
+	{start-date}			年月日
+	{start-year}			年
+	{start-year2}			年(下2桁)
+	{start-month2}			月(2桁)
+	{start-day2}			日(2桁)
+	{start-time6}			時刻(時+分+秒)
+	{start-hour2}			時(2桁)
+	{start-minute2}			分(2桁)
+	{start-second2}			秒(2桁)
+	{start-day-of-week}		曜日(漢字)
+	番組終了日時
+	{end-date}				年月日
+	{end-year}				年
+	{end-year2}				年(下2桁)
+	{end-month2}			月(2桁)
+	{end-day2}				日(2桁)
+	{end-time6}				時刻(時+分+秒)
+	{end-hour2}				時(2桁)
+	{end-minute2}			分(2桁)
+	{end-second2}			秒(2桁)
+	{end-day-of-week}		曜日(漢字)
+
 ・録画終了後コマンド実行
 	リダイレクトを使用したバッチコマンドを指定したときに、
 	コマンドが実行されなかった。（私だけかも？）

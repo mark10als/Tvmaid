@@ -1,4 +1,4 @@
-;TVTestのパス
+﻿;TVTestのパス
 tvtest=C:\tv\TVTest.exe
 ;ダミーTVTestを起動したくない場合
 tvtest.no.dummy=1
@@ -7,12 +7,12 @@ tvtest.no.kill=1
 :録画ファイルを保存するフォルダ
 record.folder=c:\tv
 :録画マージン
-record.margin.start=0
-record.margin.end=0
+record.margin.start=-10
+record.margin.end=-10
 :録画ファイル名を指定
-record.file={title}-{service-name}-{start-time}.ts
+record.file={title}_{service-name}_{start-date}_{start-time6}-{end-time6}.ts
 ;録画後のコマンド実行
 exe1=D:\TV-Capcher\_Easy-PreEdit-TS.bat
 para1="{file}"
 :番組表取得の時間
-epg.autoupdate.hour=9
+epg.autoupdate.hour=6

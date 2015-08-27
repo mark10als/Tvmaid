@@ -11,7 +11,7 @@ namespace Tvmaid
         public static DefineFile UserDef = null;    //ユーザ定義ファイル
         public static DefineFile StateDef = null;   //状態保存ファイル
         public static string Logo = "Tvmaid";
-        public static string Version = "R4 (´･ω･`) mod3 + mark10als";
+        public static string Version = "R4 (´・ω・`) mod4 + mark10als";
 
         public static int cmd_multi_now = 0; //■追加　現在マルチスレッドでコマンド実行中なら1
 

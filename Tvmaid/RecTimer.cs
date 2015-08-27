@@ -204,6 +204,8 @@ namespace Tvmaid
                 }
                 catch {}
 
+                long retry_times = 0; //■追加　何回トライしたか
+
                 while (stop == false)
                 {
                     Record rec = null;
@@ -238,7 +240,8 @@ namespace Tvmaid
                         if (rec != null)
                         {
                             flag_pre = -2; //■追加 1度はダミーTVTest起動チェックをスルーするようにセット（同一サービス連続録画の場合に備えて）
-                            StartRec(sql, rec, tuner);  //録画開始
+                            StartRec(sql, rec, tuner, retry_times);  //録画開始
+                            retry_times = 0; //正常終了すれば再録画回数をクリア
                         }
                         else
                         {
@@ -287,6 +290,7 @@ namespace Tvmaid
                     {
                         Log.Write(tuner.Name + ": 録画を中断しました。[詳細]" + e.Message);
                         Thread.Sleep(5000); //■5秒待機
+                        retry_times++; //エラーで終了した回数を記録
                     }
                 }
                 if (epgOpen)
@@ -302,7 +306,7 @@ namespace Tvmaid
         {
             Record rec = null;
             //■削除 int margin = Program.UserDef["record.margin.start"].ToInt();
-            int margin = Program.UserDef["record.margin.start"].ToInt() - 10; //■追加　きっちり録画開始のため、録画開始10秒前に起動するようにした
+            int margin = Program.UserDef["record.margin.start"].ToInt() - 15; //■追加　きっちり録画開始＆1度のチャンネル変更失敗を吸収するため、録画開始15秒前に起動するようにした
             var now = DateTime.Now - new TimeSpan(0, 0, margin);
 
             sql.Text = @"select * from record where tuner = '{0}' and status & {2} and start <= {1} and end > {2} order by start limit 1"
@@ -412,6 +416,30 @@ namespace Tvmaid
             //mark10als
             dic.Add("{end-time}", rec.EndTime.ToString("yyMMdd-HHmm"));
 
+            //mark10als
+            dic.Add("{start-time6}", rec.StartTime.ToString("HHmmss"));
+            dic.Add("{end-time6}", rec.EndTime.ToString("HHmmss"));
+
+            dic.Add("{start-date}", rec.StartTime.ToString("yyyyMMdd"));
+            dic.Add("{start-year}", rec.StartTime.ToString("yyyy"));
+            dic.Add("{start-year2}", rec.StartTime.ToString("yy"));
+            dic.Add("{start-month2}", rec.StartTime.ToString("MM"));
+            dic.Add("{start-day2}", rec.StartTime.ToString("dd"));
+            dic.Add("{start-hour2}", rec.StartTime.ToString("HH"));
+            dic.Add("{start-minute2}", rec.StartTime.ToString("mm"));
+            dic.Add("{start-second2}", rec.StartTime.ToString("ss"));
+            dic.Add("{start-day-of-week}", rec.StartTime.ToString("dddd"));
+
+            dic.Add("{end-date}", rec.EndTime.ToString("yyyyMMdd"));
+            dic.Add("{end-year}", rec.EndTime.ToString("yyyy"));
+            dic.Add("{end-year2}", rec.EndTime.ToString("yy"));
+            dic.Add("{end-month2}", rec.EndTime.ToString("MM"));
+            dic.Add("{end-day2}", rec.EndTime.ToString("dd"));
+            dic.Add("{end-hour2}", rec.EndTime.ToString("HH"));
+            dic.Add("{end-minute2}", rec.EndTime.ToString("mm"));
+            dic.Add("{end-second2}", rec.EndTime.ToString("ss"));
+            dic.Add("{end-day-of-week}", rec.EndTime.ToString("dddd"));
+
             foreach (var macro in dic)
             {
                 name = name.Replace(macro.Key, macro.Value);
@@ -433,7 +461,7 @@ namespace Tvmaid
         }
 
         //録画開始
-        void StartRec(Sql sql, Record rec, Tuner tuner)
+        void StartRec(Sql sql, Record rec, Tuner tuner, long retry_times)  //修正
         {
             var result = new Result();
             var tsStatus = new TsStatus();
@@ -446,7 +474,7 @@ namespace Tvmaid
                 //Log.Write(tuner.Name + ": 録画を開始します。" + rec.Title); //■削除
                 Log.Write(tuner.Name + ": 録画準備をしています。" + rec.Title);  //■追加
                 SleepState.SetSleepStop(true);
-                rec.SetRecoding(sql, true);
+                rec.SetRecoding(sql, true); //■メモ　ここで今録画中だとフラグをセットしている
 
                 tuner.Open();
                 var service = new Service(sql, rec.Fsid);
@@ -562,62 +590,95 @@ namespace Tvmaid
             }
             finally
             {
-                try
+                if (retry_times < 2 && result.Message.IndexOf("TVTestでエラーが発生しました。エラーコード: 6") >= 0)
                 {
-                    if (tuner != null)
+                    //■チャンネル変更エラーで終了した場合（2回目まで）
+                    try
                     {
-                        tuner.StopRec();
-                        //■削除　tuner.Close();
-                    }
-                }
-                catch (Exception e)
-                {
-                    Log.Write("録画終了中エラーが発生しました。[詳細] " + e.Message);
-                }
-
-                //■追加
-                try
-                {
-                    if (tuner != null)
-                    {
-                        tuner.Close();
-                    }
-                }
-                catch (Exception ex9)
-                {
-                    Log.Write("チューナー終了中エラーが発生しました。[詳細] " + ex9.Message);
-                    TVTest_ForceStop(); //強制終了
-                }
-                
-                try
-                {
-                    if (recContinue)
-                    {
+                        Log.Write(tuner.Name + ": チャンネル変更に失敗しました。リトライします。" + result.Message);
+                        //録画開始前の状態に戻す    
                         rec.SetRecoding(sql, false);
+
+                        //チューナーを閉じる
+                        try
+                        {
+                            if (tuner != null)
+                            {
+                                tuner.Close();
+                            }
+                        }
+                        catch (Exception ex9)
+                        {
+                            Log.Write("チューナー終了中エラーが発生しました(6)。[詳細] " + ex9.Message);
+                            TVTest_ForceStop(); //強制終了
+                        }
+
+                        SleepState.SetSleepStop(false);
                     }
-                    else
+                    catch (Exception e)
                     {
-                        rec.SetComplete(sql);
+                        Log.Write("チャンネル変更失敗時のエラー処理中にエラーが発生しました。[詳細] " + e.Message);
+                    }
+                }
+                else
+                {
+                    //■修正　録画を終了させる
+                    try
+                    {
+                        if (tuner != null)
+                        {
+                            tuner.StopRec();
+                            //■削除　tuner.Close();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Write("録画終了中エラーが発生しました。[詳細] " + e.Message);
                     }
 
-                    SleepState.SetSleepStop(false);
+                    //■追加 チューナーを閉じる
+                    try
+                    {
+                        if (tuner != null)
+                        {
+                            tuner.Close();
+                        }
+                    }
+                    catch (Exception ex9)
+                    {
+                        Log.Write("チューナー終了中エラーが発生しました。[詳細] " + ex9.Message);
+                        TVTest_ForceStop(); //強制終了
+                    }
 
-                    result.Error = tsStatus.Error;
-                    result.Drop = tsStatus.Drop;
-                    result.Scramble = tsStatus.Scramble;
-                    result.End = DateTime.Now;
-                    result.Add(sql);
+                    try
+                    {
+                        if (recContinue)
+                        {
+                            rec.SetRecoding(sql, false); //■メモ　前番組の延長により放送時間が変更になった場合
+                        }
+                        else
+                        {
+                            rec.SetComplete(sql);
+                        }
 
+                        SleepState.SetSleepStop(false);
+
+                        result.Error = tsStatus.Error;
+                        result.Drop = tsStatus.Drop;
+                        result.Scramble = tsStatus.Scramble;
+                        result.End = DateTime.Now;
+                        result.Add(sql);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Write("録画終了中エラーが発生しました。[詳細] " + e.Message);
+                    }
+
+                    Log.Write(tuner.Name + ": 録画が終了しました。" + rec.Title);
                 }
-                catch (Exception e)
-                {
-                    Log.Write("録画終了中エラーが発生しました。[詳細] " + e.Message);
-                }
-
-                Log.Write(tuner.Name + ": 録画が終了しました。" + rec.Title);
             }
 
-            //■録画後処理
+            //■録画後処理　録画が正常終了した場合のみ実行される
             try
             {
                 if (Program.UserDef["exe1"].Length > 0)
@@ -728,7 +789,7 @@ namespace Tvmaid
                 {
                     //実行ファイル名取得
                     string exe_str = Program.UserDef["exe" + i.ToString("D")];
-                    exe_str = exe_str.Replace("\"",""); //"を削除
+                    exe_str = exe_str.Replace("\"", ""); //"を削除
                     //パラメーター取得
                     string para = "";
                     try
